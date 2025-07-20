@@ -42,7 +42,7 @@ Public Tokens → Shield → Private Voucher → Transfer → Private Voucher �
 
 ```bash
 # Clone repository
-git clone https://github.com/your-org/anonymous-voucher-contracts
+git clone https://github.com/lasergun-protocol/contracts
 cd anonymous-voucher-contracts
 
 # Install dependencies
@@ -164,12 +164,10 @@ npm test -- --grep "Security"
 ## Contract Verification
 
 ### Polygon Mainnet
-- **Proxy**: `0x...` ([View on PolygonScan](https://polygonscan.com/address/0x...))
-- **Implementation**: `0x...` ([View on PolygonScan](https://polygonscan.com/address/0x...))
+- **Proxy**: `0x...` ([View on PolygonScan](https://polygonscan.com/address/0x...)) )
 
-### Mumbai Testnet
-- **Proxy**: `0x...` ([View on PolygonScan](https://mumbai.polygonscan.com/address/0x...))
-- **Implementation**: `0x...` ([View on PolygonScan](https://mumbai.polygonscan.com/address/0x...))
+### Amoy Testnet
+- **Proxy**: `0x87de1BFddcEC6374B1b475e3D82E9539B150f987` ([View on PolygonScan](https://mumbai.polygonscan.com/address/0x87de1BFddcEC6374B1b475e3D82E9539B150f987)) 
 
 ## 🔧 Development
 
@@ -204,9 +202,7 @@ scripts/
 └── utils/                  # Helper functions
 
 test/
-├── LaserGun.test.js # Core tests
-├── Upgrade.test.js         # Upgrade tests
-└── Security.test.js        # Security tests
+└── LaserGun.test.js # Core tests
 ```
 
 ## Security Considerations
