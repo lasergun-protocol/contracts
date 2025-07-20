@@ -236,12 +236,7 @@ test/
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Links
-
-- [Documentation](./docs/)
-- [Security Policy](./docs/SECURITY.md)
-- [Deployment Guide](./docs/DEPLOYMENT.md)
-- [Upgrade Guide](./docs/UPGRADE.md)
+ 
 
 ## Disclaimer
 
