@@ -1,0 +1,280 @@
+{
+  "manifestVersion": "3.2",
+  "proxies": [
+    {
+      "address": "0xAe5F7c2cE15A408c383788d59DE0385a542F7593",
+      "txHash": "0x741949e2bffab9cca6a81c600b69e341e64e5a80389d8eb6134423a593dd8d82",
+      "kind": "uups"
+    },
+    {
+      "address": "0x87de1BFddcEC6374B1b475e3D82E9539B150f987",
+      "txHash": "0x4b4f1515c3119b3750fd4f028bcf06af04e0cae695f0efcba67eadd251086635",
+      "kind": "uups"
+    }
+  ],
+  "impls": {
+    "4f7da1c3a47212be4f05b23d23ce0b3dc3f7696c2c10459c3b13914c0423cacb": {
+      "address": "0xC2093E795A7c56673629d36434b86C68914E1440",
+      "txHash": "0x5a0563dc97839b49d79bc4c07203b3ceb048463a9b31c1a92d6dab75cea736f1",
+      "layout": {
+        "solcVersion": "0.8.24",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:68"
+          },
+          {
+            "label": "_status",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:88"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:40"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC165Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol:41"
+          },
+          {
+            "label": "_roles",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)23_storage)",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:57"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "152",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:260"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC1967UpgradeUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:169"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "251",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "UUPSUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:111"
+          },
+          {
+            "label": "_paused",
+            "offset": 0,
+            "slot": "301",
+            "type": "t_bool",
+            "contract": "PausableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol:29"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "302",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "PausableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol:116"
+          },
+          {
+            "label": "vouchers",
+            "offset": 0,
+            "slot": "351",
+            "type": "t_mapping(t_bytes32,t_struct(Voucher)4310_storage)",
+            "contract": "LaserGun",
+            "src": "contracts/LaserGun.sol:32"
+          },
+          {
+            "label": "userNonces",
+            "offset": 0,
+            "slot": "352",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "LaserGun",
+            "src": "contracts/LaserGun.sol:35"
+          },
+          {
+            "label": "publicKeys",
+            "offset": 0,
+            "slot": "353",
+            "type": "t_mapping(t_address,t_bytes_storage)",
+            "contract": "LaserGun",
+            "src": "contracts/LaserGun.sol:38"
+          },
+          {
+            "label": "shieldFeePercent",
+            "offset": 0,
+            "slot": "354",
+            "type": "t_uint256",
+            "contract": "LaserGun",
+            "src": "contracts/LaserGun.sol:41"
+          },
+          {
+            "label": "unshieldFeePercent",
+            "offset": 0,
+            "slot": "355",
+            "type": "t_uint256",
+            "contract": "LaserGun",
+            "src": "contracts/LaserGun.sol:42"
+          },
+          {
+            "label": "collectedFees",
+            "offset": 0,
+            "slot": "356",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "LaserGun",
+            "src": "contracts/LaserGun.sol:43"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_bytes_storage": {
+            "label": "bytes",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_bytes_storage)": {
+            "label": "mapping(address => bytes)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)23_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(Voucher)4310_storage)": {
+            "label": "mapping(bytes32 => struct ILaserGun.Voucher)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(RoleData)23_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "members",
+                "type": "t_mapping(t_address,t_bool)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_struct(Voucher)4310_storage": {
+            "label": "struct ILaserGun.Voucher",
+            "members": [
+              {
+                "label": "token",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "amount",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "timestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "exists",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "spent",
+                "type": "t_bool",
+                "offset": 1,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "128"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        },
+        "namespaces": {}
+      }
+    }
+  }
+}
