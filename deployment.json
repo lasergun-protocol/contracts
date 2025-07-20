@@ -1,26 +1,12 @@
 {
-  "proxy": "0x87de1BFddcEC6374B1b475e3D82E9539B150f987",
-  "implementation": "0xC2093E795A7c56673629d36434b86C68914E1440",
+  "proxy": "0x7a9046293dF17d2ec81eF4606376bFE1b45A2f18",
+  "implementation": "0x210ca6213DdC0a65D37db7ac6Ef21e91DF5cfD17",
   "network": "amoy",
   "chainId": 80002,
   "deployer": "0xf93fa9730Ad88Dc6D1334c0d1532cd3DEcB1b41A",
-  "deployedAt": "2025-07-19T13:45:41.961Z",
+  "deployedAt": "2025-07-20T20:55:58.316Z",
   "contractName": "LaserGun",
   "proxyKind": "uups",
   "shieldFeePercent": 25,
-  "unshieldFeePercent": 25,
-  "testToken": {
-    "address": "0x4c72f794cDF304F101eac8DD8a8B8e0Bb794F34b",
-    "name": "Test USDC",
-    "symbol": "TUSDC",
-    "decimals": 6,
-    "totalSupply": "1000000.0",
-    "network": "amoy",
-    "chainId": 80002,
-    "deployer": "0xf93fa9730Ad88Dc6D1334c0d1532cd3DEcB1b41A",
-    "deployedAt": "2025-07-19T14:52:40.040Z",
-    "faucetAmount": "1000",
-    "faucetCooldown": "1 hour",
-    "contractName": "TestToken"
-  }
+  "unshieldFeePercent": 25
 }

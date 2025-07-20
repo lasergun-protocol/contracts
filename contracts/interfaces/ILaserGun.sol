@@ -3,9 +3,9 @@ pragma solidity ^0.8.19;
 
 interface ILaserGun {
     // Events
-    event VoucherCreated(bytes32 indexed commitment, address indexed token, uint256 amount, uint256 fee);
-    event VoucherRedeemed(bytes32 indexed commitment, address indexed token, uint256 amount, uint256 fee);
-    event VoucherConsolidated(bytes32[] indexed oldCommitments, bytes32 indexed newCommitment);
+    event Shielded(bytes32 indexed commitment, address indexed token, uint256 amount, uint256 fee);
+    event Unshielded(bytes32 indexed commitment, address indexed token, uint256 amount, uint256 fee);
+    event ShieldConsolidated(bytes32[] indexed oldCommitments, bytes32 indexed newCommitment);
     event FeesUpdated(uint256 shieldFee, uint256 unshieldFee);
     event FeeCollected(address indexed token, uint256 amount);
     event SecretDelivered(bytes encryptedSecret);
@@ -14,16 +14,16 @@ interface ILaserGun {
     error FeeExceedsMaximum();
     error CommitmentAlreadyExists();
     error NetAmountMustBePositive();
-    error VoucherDoesNotExist();
-    error VoucherAlreadySpent();
-    error InsufficientVoucherBalance();
+    error ShieldDoesNotExist();
+    error ShieldAlreadySpent();
+    error InsufficientShieldBalance();
     error NewCommitmentRequiredForRemainingBalance();
     error InvalidRecipient();
     error RecipientCommitmentAlreadyExists();
     error NoSecretsProvided();
-    error TooManyVouchersToConsolidate();
+    error TooManyShieldsToConsolidate();
     error TotalAmountMustBePositive();
-    error AllVouchersMustUseSameToken();
+    error AllShieldsMustUseSameToken();
     error AmountOverflow();
     error InvalidToken();
     error NoFeesToWithdraw();
@@ -31,9 +31,12 @@ interface ILaserGun {
     error EncryptedSecretCannotBeEmpty();
     error ExpectedPause();
     error EmptyCommitment();
+    error ZeroAmount();
+    error EmptyToken();
+    error InvalidCommitment();
 
     // Structs
-    struct Voucher {
+    struct Shield {
         address token;
         uint256 amount;
         uint256 timestamp;
@@ -42,9 +45,9 @@ interface ILaserGun {
     }
 
     // Core functions
-    function deposit(uint256 amount, address token, bytes32 commitment) external;
+    function shield(uint256 amount, address token, bytes32 commitment) external;
 
-    function redeem(bytes32 secret, uint256 redeemAmount, address recipient, bytes32 newCommitment) external;
+    function unshield(bytes32 secret, uint256 redeemAmount, address recipient, bytes32 newCommitment) external;
 
     function transfer(
         bytes32 secret,
@@ -56,13 +59,13 @@ interface ILaserGun {
     function consolidate(bytes32[] calldata secrets, bytes32 newCommitment) external;
 
     // View functions
-    function getVoucherInfo(
+    function getShieldInfo(
         bytes32 commitment
     ) external view returns (bool exists, address token, uint256 amount, uint256 timestamp, bool spent);
 
     function generateCommitment(bytes32 secret, address recipient) external pure returns (bytes32);
 
-    function getMyVoucherBalance(bytes32 secret, address token) external view returns (uint256);
+    function getShieldBalance(bytes32 secret, address token) external view returns (uint256);
 
     function isCommitmentActive(bytes32 commitment) external view returns (bool);
 

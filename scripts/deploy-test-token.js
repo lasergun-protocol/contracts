@@ -131,7 +131,7 @@ async function main() {
   console.log("");
   console.log("3. Use with LaserGun:");
   console.log("   - Approve LaserGun to spend your tokens");
-  console.log("   - Use deposit() to create vouchers");
+  console.log("   - Use deposit() to create Shields");
   console.log("   - Test anonymous transfers");
   
   // Если LaserGun уже задеплоен, покажем пример транзакций

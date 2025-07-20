@@ -1,14 +1,14 @@
-# Anonymous Voucher Smart Contracts
+# Anonymous Shield Smart Contracts
 
 ## Overview
 
-Anonymous Voucher is a privacy-preserving smart contract system that enables anonymous transfers and storage of ERC20 tokens on Ethereum and compatible networks. The system uses commitment-based cryptography to hide balances and transaction details while maintaining full functionality.
+Anonymous Shield is a privacy-preserving smart contract system that enables anonymous transfers and storage of ERC20 tokens on Ethereum and compatible networks. The system uses commitment-based cryptography to hide balances and transaction details while maintaining full functionality.
 
 ## Features
 
 - **Privacy-First**: Balances and transaction details are hidden using cryptographic commitments
 - **Anonymous Transfers**: Send tokens to recipients without revealing sender identity
-- **Auto-Consolidation**: Maintain single active voucher per user for optimal UX
+- **Auto-Consolidation**: Maintain single active Shield per user for optimal UX
 - **Gas Optimized**: Efficient operations with minimal gas costs
 - **Secure**: Multi-role access control and emergency pause functionality
 - **Upgradeable**: UUPS proxy pattern for future improvements
@@ -18,15 +18,15 @@ Anonymous Voucher is a privacy-preserving smart contract system that enables ano
 
 ### Core Components
 
-1. **Vouchers**: Commitment-based token storage with hidden balances
+1. **Shields**: Commitment-based token storage with hidden balances
 2. **Shield/Unshield**: Convert between public and private tokens
 3. **Transfers**: Anonymous peer-to-peer token transfers
-4. **Consolidation**: Merge multiple vouchers into one
+4. **Consolidation**: Merge multiple Shields into one
 
 ### Privacy Model
 
 ```
-Public Tokens → Shield → Private Voucher → Transfer → Private Voucher → Unshield → Public Tokens
+Public Tokens → Shield → Private Shield → Transfer → Private Shield → Unshield → Public Tokens
      ↑                      ↓                           ↓                         ↑
   Visible             Hidden Balance              Hidden Balance           Visible
 ```
@@ -43,7 +43,7 @@ Public Tokens → Shield → Private Voucher → Transfer → Private Voucher �
 ```bash
 # Clone repository
 git clone https://github.com/lasergun-protocol/contracts
-cd anonymous-voucher-contracts
+cd anonymous-Shield-contracts
 
 # Install dependencies
 npm install
@@ -88,24 +88,24 @@ npm run deploy:polygon
 ### Core Functions
 
 #### `deposit(uint256 amount, address token, bytes32 commitment)`
-Convert public tokens to private voucher (Shield operation)
+Convert public tokens to private Shield (Shield operation)
 
 #### `redeem(bytes32 secret, uint256 redeemAmount, bytes32 newCommitment)`
-Convert private voucher to public tokens (Unshield operation)
+Convert private Shield to public tokens (Unshield operation)
 
-#### `createVoucherForRecipient(bytes32 secret, uint256 amount, address recipient, bytes32 recipientCommitment)`
-Transfer portion of voucher to another user
+#### `createShieldForRecipient(bytes32 secret, uint256 amount, address recipient, bytes32 recipientCommitment)`
+Transfer portion of Shield to another user
 
 #### `consolidate(bytes32[] secrets, bytes32 newCommitment)`
-Merge multiple vouchers into single voucher
+Merge multiple Shields into single Shield
 
 ### View Functions
 
-#### `getVoucherInfo(bytes32 commitment) → (bool exists, address token, uint256 amount, uint256 timestamp, bool spent)`
-Get voucher details
+#### `getShieldInfo(bytes32 commitment) → (bool exists, address token, uint256 amount, uint256 timestamp, bool spent)`
+Get Shield details
 
-#### `getMyVoucherBalance(bytes32 secret, address token) → uint256`
-Check voucher balance for specific secret
+#### `getMyShieldBalance(bytes32 secret, address token) → uint256`
+Check Shield balance for specific secret
 
 #### `generateCommitment(bytes32 secret, address recipient) → bytes32`
 Generate commitment hash
@@ -135,8 +135,8 @@ Generate commitment hash
 | Deposit | ~150,000 | First-time deposit |
 | Redeem | ~120,000 | Full amount |
 | Transfer | ~180,000 | Including remainder |
-| Consolidate (2) | ~170,000 | Two vouchers |
-| Consolidate (10) | ~400,000 | Maximum vouchers |
+| Consolidate (2) | ~170,000 | Two Shields |
+| Consolidate (10) | ~400,000 | Maximum Shields |
 
 ## Testing
 
@@ -210,7 +210,7 @@ test/
 ### Known Limitations
 - Frontend must track user commitments locally
 - Requires external secret sharing for transfers  
-- Gas costs increase with number of vouchers to consolidate
+- Gas costs increase with number of Shields to consolidate
 
 ### Best Practices
 - Always use strong randomness for secrets

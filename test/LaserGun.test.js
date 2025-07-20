@@ -105,7 +105,7 @@ describe("LaserGun", function () {
     it("Should have correct constants", async function () {
       expect(await contract.MAX_FEE_PERCENT()).to.equal(1000n);
       expect(await contract.FEE_DENOMINATOR()).to.equal(10000n);
-      expect(await contract.MAX_CONSOLIDATE_VOUCHERS()).to.equal(10n);
+      expect(await contract.MAX_CONSOLIDATE_ShieldS()).to.equal(10n);
       expect(await contract.MIN_AMOUNT()).to.equal(1n);
     });
   });
@@ -118,7 +118,7 @@ describe("LaserGun", function () {
     return receipt;
   }
 
-  async function createTestVoucher(user, amount, token = mockUSDC) {
+  async function createTestShield(user, amount, token = mockUSDC) {
     const secret = ethers.randomBytes(32); // БЕЗ .utils
     const commitment = ethers.keccak256(
       ethers.solidityPacked(["bytes32", "address"], [secret, user.address]) // v6 синтаксис
@@ -126,14 +126,14 @@ describe("LaserGun", function () {
 
     await token.connect(user).approve(await contract.getAddress(), amount); // v6: getAddress()
     await waitForTransaction(
-      contract.connect(user).deposit(amount, await token.getAddress(), commitment)
+      contract.connect(user).shield(amount, await token.getAddress(), commitment)
     );
 
     return { secret, commitment, amount };
   }
 
-  describe("Deposit (Shield)", function () {
-    it("Should deposit successfully and charge fee", async function () {
+  describe("Shield (Shield)", function () {
+    it("Should shield successfully and charge fee", async function () {
       const amount = ethers.parseUnits("100", 6); // БЕЗ .utils
       const secret = ethers.randomBytes(32);
       const commitment = ethers.keccak256(
@@ -151,20 +151,20 @@ describe("LaserGun", function () {
       const initialContractBalance = await mockUSDC.balanceOf(await contract.getAddress());
       const initialUserBalance = await mockUSDC.balanceOf(user1.address);
 
-      // Deposit
-      await expect(contract.connect(user1).deposit(amount, await mockUSDC.getAddress(), commitment))
-        .to.emit(contract, "VoucherCreated")
+      // Shield
+      await expect(contract.connect(user1).shield(amount, await mockUSDC.getAddress(), commitment))
+        .to.emit(contract, "Shielded")
         .withArgs(commitment, await mockUSDC.getAddress(), expectedNetAmount, expectedFee)
         .to.emit(contract, "FeeCollected")
         .withArgs(await mockUSDC.getAddress(), expectedFee);
 
-      // Check voucher info
-      const voucher = await contract.getVoucherInfo(commitment);
-      expect(voucher.exists).to.be.true;
-      expect(voucher.amount).to.equal(expectedNetAmount);
-      expect(voucher.token).to.equal(await mockUSDC.getAddress());
-      expect(voucher.spent).to.be.false;
-      expect(voucher.timestamp).to.be.gt(0);
+      // Check Shield info
+      const Shield = await contract.getShieldInfo(commitment);
+      expect(Shield.exists).to.be.true;
+      expect(Shield.amount).to.equal(expectedNetAmount);
+      expect(Shield.token).to.equal(await mockUSDC.getAddress());
+      expect(Shield.spent).to.be.false;
+      expect(Shield.timestamp).to.be.gt(0);
 
       // Check collected fees
       expect(await contract.collectedFees(await mockUSDC.getAddress())).to.equal(expectedFee);
@@ -180,7 +180,7 @@ describe("LaserGun", function () {
     it("Should reject zero amounts", async function () {
       const commitment = ethers.randomBytes(32);
       await expect(
-        contract.connect(user1).deposit(0n, await mockUSDC.getAddress(), commitment)
+        contract.connect(user1).shield(0n, await mockUSDC.getAddress(), commitment)
       ).to.be.revertedWithCustomError(contract, "ZeroAmount");
     });
 
@@ -189,7 +189,7 @@ describe("LaserGun", function () {
       const commitment = ethers.randomBytes(32);
 
       await expect(
-        contract.connect(user1).deposit(amount, ethers.ZeroAddress, commitment) // v6: ZeroAddress
+        contract.connect(user1).shield(amount, ethers.ZeroAddress, commitment) // v6: ZeroAddress
       ).to.be.revertedWithCustomError(contract, "EmptyToken");
     });
 
@@ -197,7 +197,7 @@ describe("LaserGun", function () {
       const amount = ethers.parseUnits("100", 6);
 
       await expect(
-        contract.connect(user1).deposit(amount, await mockUSDC.getAddress(), ethers.ZeroHash) // v6: ZeroHash
+        contract.connect(user1).shield(amount, await mockUSDC.getAddress(), ethers.ZeroHash) // v6: ZeroHash
       ).to.be.revertedWithCustomError(contract, "InvalidCommitment");
     });
 
@@ -207,12 +207,12 @@ describe("LaserGun", function () {
 
       await mockUSDC.connect(user1).approve(await contract.getAddress(), amount * 2n);
 
-      // First deposit
-      await contract.connect(user1).deposit(amount, await mockUSDC.getAddress(), commitment);
+      // First shield
+      await contract.connect(user1).shield(amount, await mockUSDC.getAddress(), commitment);
 
-      // Second deposit with same commitment should fail
+      // Second shield with same commitment should fail
       await expect(
-        contract.connect(user1).deposit(amount, await mockUSDC.getAddress(), commitment)
+        contract.connect(user1).shield(amount, await mockUSDC.getAddress(), commitment)
       ).to.be.revertedWithCustomError(contract, "CommitmentAlreadyExists");
     });
 
@@ -223,7 +223,7 @@ describe("LaserGun", function () {
       const commitment = ethers.randomBytes(32);
 
       await expect(
-        contract.connect(user1).deposit(amount, await mockUSDC.getAddress(), commitment)
+        contract.connect(user1).shield(amount, await mockUSDC.getAddress(), commitment)
       ).to.be.revertedWith("Pausable: paused");
     });
 
@@ -239,35 +239,35 @@ describe("LaserGun", function () {
 
       await mockUSDC.connect(user1).approve(await contract.getAddress(), amount);
 
-      await expect(contract.connect(user1).deposit(amount, await mockUSDC.getAddress(), commitment))
-        .to.emit(contract, "VoucherCreated")
+      await expect(contract.connect(user1).shield(amount, await mockUSDC.getAddress(), commitment))
+        .to.emit(contract, "Shielded")
         .withArgs(commitment, await mockUSDC.getAddress(), amount, 0n)
         .to.not.emit(contract, "FeeCollected");
 
-      const voucher = await contract.getVoucherInfo(commitment);
-      expect(voucher.amount).to.equal(amount);
+      const Shield = await contract.getShieldInfo(commitment);
+      expect(Shield.amount).to.equal(amount);
       expect(await contract.collectedFees(await mockUSDC.getAddress())).to.equal(0n);
     });
   });
 
-  describe("Redeem (Unshield)", function () {
-    let secret, commitment, depositAmount, netAmount;
+  describe("Unshield (Unshield)", function () {
+    let secret, commitment, shieldAmount, netAmount;
 
     beforeEach(async function () {
-      depositAmount = ethers.parseUnits("100", 6);
+      shieldAmount = ethers.parseUnits("100", 6);
       secret = ethers.randomBytes(32);
       commitment = ethers.keccak256(
         ethers.solidityPacked(["bytes32", "address"], [secret, user1.address])
       );
 
-      const depositFee = depositAmount * SHIELD_FEE / FEE_DENOMINATOR;
-      netAmount = depositAmount - depositFee;
+      const shieldFee = shieldAmount * SHIELD_FEE / FEE_DENOMINATOR;
+      netAmount = shieldAmount - shieldFee;
 
-      await mockUSDC.connect(user1).approve(await contract.getAddress(), depositAmount);
-      await contract.connect(user1).deposit(depositAmount, await mockUSDC.getAddress(), commitment);
+      await mockUSDC.connect(user1).approve(await contract.getAddress(), shieldAmount);
+      await contract.connect(user1).shield(shieldAmount, await mockUSDC.getAddress(), commitment);
     });
 
-    it("Should redeem full amount successfully", async function () {
+    it("Should unshield full amount successfully", async function () {
       const initialBalance = await mockUSDC.balanceOf(user2.address);
 
       // Calculate unshield fee
@@ -275,100 +275,100 @@ describe("LaserGun", function () {
       const expectedAmount = netAmount - unshieldFee;
 
       await expect(
-        contract.connect(user1).redeem(secret, netAmount, user2.address, ethers.ZeroHash)
+        contract.connect(user1).unshield(secret, netAmount, user2.address, ethers.ZeroHash)
       )
-        .to.emit(contract, "VoucherRedeemed")
+        .to.emit(contract, "Unshielded")
         .withArgs(commitment, await mockUSDC.getAddress(),  expectedAmount, unshieldFee)
         .to.emit(contract, "FeeCollected")
         .withArgs(await mockUSDC.getAddress(), unshieldFee);
 
-      // Check voucher is spent
-      const voucher = await contract.getVoucherInfo(commitment);
-      expect(voucher.spent).to.be.true;
+      // Check Shield is spent
+      const Shield = await contract.getShieldInfo(commitment);
+      expect(Shield.spent).to.be.true;
 
       // Check user received tokens
       const finalBalance = await mockUSDC.balanceOf(user2.address);
       expect(finalBalance - initialBalance).to.equal(expectedAmount);
 
       // Check fees collected
-      const totalFees = depositAmount * SHIELD_FEE / FEE_DENOMINATOR + unshieldFee;
+      const totalFees = shieldAmount * SHIELD_FEE / FEE_DENOMINATOR + unshieldFee;
       expect(await contract.collectedFees(await mockUSDC.getAddress())).to.equal(totalFees);
     });
 
-    it("Should redeem partial amount and create remainder voucher", async function () {
-      const redeemAmount = netAmount / 2n; // Половина
+    it("Should unshield partial amount and create remainder Shield", async function () {
+      const unshieldAmount = netAmount / 2n; // Половина
       const newCommitment = ethers.randomBytes(32);
 
-      const unshieldFee = redeemAmount * UNSHIELD_FEE / FEE_DENOMINATOR;
-      const expectedAmount = redeemAmount - unshieldFee;
-      const remainderAmount = netAmount - redeemAmount;
+      const unshieldFee = unshieldAmount * UNSHIELD_FEE / FEE_DENOMINATOR;
+      const expectedAmount = unshieldAmount - unshieldFee;
+      const remainderAmount = netAmount - unshieldAmount;
 
       await expect(
-        contract.connect(user1).redeem(secret, redeemAmount, user2.address, newCommitment)
+        contract.connect(user1).unshield(secret, unshieldAmount, user2.address, newCommitment)
       )
-        .to.emit(contract, "VoucherRedeemed")
+        .to.emit(contract, "Unshielded")
         .withArgs(commitment, await mockUSDC.getAddress(),  expectedAmount, unshieldFee)
-        .to.emit(contract, "VoucherCreated")
+        .to.emit(contract, "Shielded")
         .withArgs(newCommitment, await mockUSDC.getAddress(), remainderAmount, 0n);
 
-      // Check original voucher is spent
-      const originalVoucher = await contract.getVoucherInfo(commitment);
-      expect(originalVoucher.spent).to.be.true;
+      // Check original Shield is spent
+      const originalShield = await contract.getShieldInfo(commitment);
+      expect(originalShield.spent).to.be.true;
 
-      // Check new voucher created
-      const newVoucher = await contract.getVoucherInfo(newCommitment);
-      expect(newVoucher.exists).to.be.true;
-      expect(newVoucher.amount).to.equal(remainderAmount);
-      expect(newVoucher.spent).to.be.false;
+      // Check new Shield created
+      const newShield = await contract.getShieldInfo(newCommitment);
+      expect(newShield.exists).to.be.true;
+      expect(newShield.amount).to.equal(remainderAmount);
+      expect(newShield.spent).to.be.false;
     });
 
     it("Should reject invalid secret", async function () {
       const wrongSecret = ethers.randomBytes(32);
 
       await expect(
-        contract.connect(user1).redeem(wrongSecret, netAmount, user2.address, ethers.ZeroHash)
-      ).to.be.revertedWithCustomError(contract, "VoucherDoesNotExist");
+        contract.connect(user1).unshield(wrongSecret, netAmount, user2.address, ethers.ZeroHash)
+      ).to.be.revertedWithCustomError(contract, "ShieldDoesNotExist");
     });
 
     it("Should reject insufficient balance", async function () {
       const excessAmount = netAmount + 1n;
 
       await expect(
-        contract.connect(user1).redeem(secret, excessAmount, user2.address, ethers.ZeroHash)
-      ).to.be.revertedWithCustomError(contract, "InsufficientVoucherBalance");
+        contract.connect(user1).unshield(secret, excessAmount, user2.address, ethers.ZeroHash)
+      ).to.be.revertedWithCustomError(contract, "InsufficientShieldBalance");
     });
 
     it("Should reject invalid recipient", async function () {
       await expect(
-        contract.connect(user1).redeem(secret, netAmount, ethers.ZeroAddress, ethers.ZeroHash)
+        contract.connect(user1).unshield(secret, netAmount, ethers.ZeroAddress, ethers.ZeroHash)
       ).to.be.revertedWithCustomError(contract, "InvalidRecipient");
     });
 
     it("Should reject dust amounts", async function () {
       await expect(
-        contract.connect(user1).redeem(secret, 0n, user2.address, ethers.ZeroHash)
+        contract.connect(user1).unshield(secret, 0n, user2.address, ethers.ZeroHash)
       ).to.be.revertedWithCustomError(contract, "AmountTooSmall");
     });
   });
 
-  describe("Create Voucher for Recipient", function () {
-    let secret, commitment, depositAmount, netAmount;
+  describe("Create Shield for Recipient", function () {
+    let secret, commitment, shieldAmount, netAmount;
 
     beforeEach(async function () {
-      depositAmount = ethers.parseUnits("100", 6);
+      shieldAmount = ethers.parseUnits("100", 6);
       secret = ethers.randomBytes(32);
       commitment = ethers.keccak256(
         ethers.solidityPacked(["bytes32", "address"], [secret, user1.address])
       );
 
-      const depositFee = depositAmount * SHIELD_FEE / FEE_DENOMINATOR;
-      netAmount = depositAmount - depositFee;
+      const shieldFee = shieldAmount * SHIELD_FEE / FEE_DENOMINATOR;
+      netAmount = shieldAmount - shieldFee;
 
-      await mockUSDC.connect(user1).approve(await contract.getAddress(), depositAmount);
-      await contract.connect(user1).deposit(depositAmount, await mockUSDC.getAddress(), commitment);
+      await mockUSDC.connect(user1).approve(await contract.getAddress(), shieldAmount);
+      await contract.connect(user1).shield(shieldAmount, await mockUSDC.getAddress(), commitment);
     });
 
-    it("Should create voucher for recipient successfully", async function () {
+    it("Should create Shield for recipient successfully", async function () {
       const transferAmount = netAmount / 2n;
       const recipientCommitment = ethers.randomBytes(32);
       const encryptedSecret = ethers.hexlify(ethers.randomBytes(64));
@@ -380,9 +380,9 @@ describe("LaserGun", function () {
 
       // ✅ ИСПРАВЛЕНИЕ: Проверяем события без жесткой привязки к commitment'у остатка
       await expect(tx)
-        .to.emit(contract, "VoucherRedeemed")
+        .to.emit(contract, "Unshielded")
         .withArgs(commitment, await mockUSDC.getAddress(),  transferAmount, 0n)
-        .to.emit(contract, "VoucherCreated")
+        .to.emit(contract, "Shielded")
         .withArgs(recipientCommitment, await mockUSDC.getAddress(), transferAmount, 0n)
         .to.emit(contract, "SecretDelivered")
         .withArgs(encryptedSecret);
@@ -396,21 +396,21 @@ describe("LaserGun", function () {
           ethers.solidityPacked(["address", "uint256"], [user1.address, currentNonce - 1n])
         );
 
-        const remainderVoucher = await contract.getVoucherInfo(expectedRemainderCommitment);
-        expect(remainderVoucher.exists).to.be.true;
-        expect(remainderVoucher.amount).to.equal(remainderAmount);
-        expect(remainderVoucher.token).to.equal(await mockUSDC.getAddress());
+        const remainderShield = await contract.getShieldInfo(expectedRemainderCommitment);
+        expect(remainderShield.exists).to.be.true;
+        expect(remainderShield.amount).to.equal(remainderAmount);
+        expect(remainderShield.token).to.equal(await mockUSDC.getAddress());
       }
 
-      // Check original voucher is spent
-      const originalVoucher = await contract.getVoucherInfo(commitment);
-      expect(originalVoucher.spent).to.be.true;
+      // Check original Shield is spent
+      const originalShield = await contract.getShieldInfo(commitment);
+      expect(originalShield.spent).to.be.true;
 
-      // Check recipient voucher created
-      const recipientVoucher = await contract.getVoucherInfo(recipientCommitment);
-      expect(recipientVoucher.exists).to.be.true;
-      expect(recipientVoucher.amount).to.equal(transferAmount);
-      expect(recipientVoucher.token).to.equal(await mockUSDC.getAddress());
+      // Check recipient Shield created
+      const recipientShield = await contract.getShieldInfo(recipientCommitment);
+      expect(recipientShield.exists).to.be.true;
+      expect(recipientShield.amount).to.equal(transferAmount);
+      expect(recipientShield.token).to.equal(await mockUSDC.getAddress());
     });
 
 
@@ -418,23 +418,23 @@ describe("LaserGun", function () {
       const recipientCommitment = ethers.randomBytes(32);
       const encryptedSecret = ethers.hexlify(ethers.randomBytes(64));
 
-      // ✅ ИСПРАВЛЕНИЕ: Убираем несуществующее событие VoucherTransferred
+      // ✅ ИСПРАВЛЕНИЕ: Убираем несуществующее событие ShieldTransferred
       const tx = await contract.connect(user1).transfer(
         secret, netAmount,  recipientCommitment, encryptedSecret
       );
 
       await expect(tx)
-        .to.emit(contract, "VoucherRedeemed")
+        .to.emit(contract, "Unshielded")
         .withArgs(commitment, await mockUSDC.getAddress(),  netAmount, 0n)
-        .to.emit(contract, "VoucherCreated")
+        .to.emit(contract, "Shielded")
         .withArgs(recipientCommitment, await mockUSDC.getAddress(), netAmount, 0n)
         .to.emit(contract, "SecretDelivered")
         .withArgs(encryptedSecret);
 
-      // Check recipient voucher created
-      const recipientVoucher = await contract.getVoucherInfo(recipientCommitment);
-      expect(recipientVoucher.exists).to.be.true;
-      expect(recipientVoucher.amount).to.equal(netAmount);
+      // Check recipient Shield created
+      const recipientShield = await contract.getShieldInfo(recipientCommitment);
+      expect(recipientShield.exists).to.be.true;
+      expect(recipientShield.amount).to.equal(netAmount);
 
       // ✅ Проверяем что НЕ создался воучер для остатка (остатка нет)
       const currentNonce = await contract.userNonces(user1.address);
@@ -442,8 +442,8 @@ describe("LaserGun", function () {
         const potentialRemainderCommitment = ethers.keccak256(
           ethers.solidityPacked(["address", "uint256"], [user1.address, currentNonce - 1n])
         );
-        const remainderVoucher = await contract.getVoucherInfo(potentialRemainderCommitment);
-        expect(remainderVoucher.exists).to.be.false; // Не должен существовать при полном переводе
+        const remainderShield = await contract.getShieldInfo(potentialRemainderCommitment);
+        expect(remainderShield.exists).to.be.false; // Не должен существовать при полном переводе
       }
     });
  
@@ -457,7 +457,7 @@ describe("LaserGun", function () {
         contract.connect(user1).transfer(
           secret, transferAmount,   recipientCommitment, encryptedSecret
         )
-      ).to.be.revertedWithCustomError(contract, "InsufficientVoucherBalance");
+      ).to.be.revertedWithCustomError(contract, "InsufficientShieldBalance");
     });
 
     it("Should reject dust amounts", async function () {
@@ -492,7 +492,7 @@ describe("LaserGun", function () {
         contract.connect(user1).transfer(
           wrongSecret, transferAmount, recipientCommitment, encryptedSecret
         )
-      ).to.be.revertedWithCustomError(contract, "VoucherDoesNotExist");
+      ).to.be.revertedWithCustomError(contract, "ShieldDoesNotExist");
     });
 
     it("Should reject empty encrypted secret", async function () {
@@ -508,7 +508,7 @@ describe("LaserGun", function () {
     });
   });
 
-  describe("Consolidate Vouchers", function () {
+  describe("Consolidate Shields", function () {
     let secrets, commitments, amounts;
 
     beforeEach(async function () {
@@ -516,7 +516,7 @@ describe("LaserGun", function () {
       commitments = [];
       amounts = [];
 
-      // Create multiple vouchers
+      // Create multiple Shields
       for (let i = 0; i < 3; i++) {
         const amount = ethers.parseUnits("50", 6);
         const secret = ethers.randomBytes(32);
@@ -525,7 +525,7 @@ describe("LaserGun", function () {
         );
 
         await mockUSDC.connect(user1).approve(await contract.getAddress(), amount);
-        await contract.connect(user1).deposit(amount, await mockUSDC.getAddress(), commitment);
+        await contract.connect(user1).shield(amount, await mockUSDC.getAddress(), commitment);
 
         secrets.push(secret);
         commitments.push(commitment);
@@ -533,7 +533,7 @@ describe("LaserGun", function () {
       }
     });
 
-    it("Should consolidate multiple vouchers successfully", async function () {
+    it("Should consolidate multiple Shields successfully", async function () {
       const newCommitment = ethers.randomBytes(32);
       const totalAmount = amounts.reduce((sum, amount) => sum + amount, 0n);
 
@@ -541,20 +541,20 @@ describe("LaserGun", function () {
       await expect(
         contract.connect(user1).consolidate(secrets, newCommitment)
       )
-        .to.emit(contract, "VoucherConsolidated")
-        .to.emit(contract, "VoucherCreated");
+        .to.emit(contract, "ShieldConsolidated")
+        .to.emit(contract, "Shielded");
 
-      // Check all original vouchers are spent
+      // Check all original Shields are spent
       for (const commitment of commitments) {
-        const voucher = await contract.getVoucherInfo(commitment);
-        expect(voucher.spent).to.be.true;
+        const Shield = await contract.getShieldInfo(commitment);
+        expect(Shield.spent).to.be.true;
       }
 
-      // Check new consolidated voucher
-      const newVoucher = await contract.getVoucherInfo(newCommitment);
-      expect(newVoucher.exists).to.be.true;
-      expect(newVoucher.amount).to.equal(totalAmount);
-      expect(newVoucher.token).to.equal(await mockUSDC.getAddress());
+      // Check new consolidated Shield
+      const newShield = await contract.getShieldInfo(newCommitment);
+      expect(newShield.exists).to.be.true;
+      expect(newShield.amount).to.equal(totalAmount);
+      expect(newShield.token).to.equal(await mockUSDC.getAddress());
     });
 
     it("Should reject empty secrets array", async function () {
@@ -565,14 +565,14 @@ describe("LaserGun", function () {
       ).to.be.revertedWithCustomError(contract, "NoSecretsProvided");
     });
 
-    it("Should reject too many vouchers", async function () {
-      // Create array with 11 secrets (exceeds MAX_CONSOLIDATE_VOUCHERS = 10)
+    it("Should reject too many Shields", async function () {
+      // Create array with 11 secrets (exceeds MAX_CONSOLIDATE_ShieldS = 10)
       const tooManySecrets = new Array(11).fill(ethers.randomBytes(32));
       const newCommitment = ethers.randomBytes(32);
 
       await expect(
         contract.connect(user1).consolidate(tooManySecrets, newCommitment)
-      ).to.be.revertedWithCustomError(contract, "TooManyVouchersToConsolidate");
+      ).to.be.revertedWithCustomError(contract, "TooManyShieldsToConsolidate");
     });
 
     it("Should reject invalid commitment", async function () {
@@ -593,7 +593,7 @@ describe("LaserGun", function () {
       const mockDAI = await MockERC20_2.deploy("Mock DAI", "DAI", 18);
       await mockDAI.waitForDeployment();
 
-      // Mint and create voucher with different token
+      // Mint and create Shield with different token
       const amount = ethers.parseUnits("50", 18);
       await mockDAI.mint(user1.address, amount);
 
@@ -603,19 +603,19 @@ describe("LaserGun", function () {
       );
 
       await mockDAI.connect(user1).approve(await contract.getAddress(), amount);
-      await contract.connect(user1).deposit(amount, await mockDAI.getAddress(), daiCommitment);
+      await contract.connect(user1).shield(amount, await mockDAI.getAddress(), daiCommitment);
 
-      // Try to consolidate USDC and DAI vouchers together
+      // Try to consolidate USDC and DAI Shields together
       const mixedSecrets = [...secrets.slice(0, 2), daiSecret];
       const newCommitment = ethers.randomBytes(32);
 
       await expect(
         contract.connect(user1).consolidate(mixedSecrets, newCommitment)
-      ).to.be.revertedWithCustomError(contract, "AllVouchersMustUseSameToken");
+      ).to.be.revertedWithCustomError(contract, "AllShieldsMustUseSameToken");
     });
 
-    it("Should consolidate with maximum allowed vouchers", async function () {
-      // Create additional vouchers to reach MAX_CONSOLIDATE_VOUCHERS (10)
+    it("Should consolidate with maximum allowed Shields", async function () {
+      // Create additional Shields to reach MAX_CONSOLIDATE_ShieldS (10)
       const additionalSecrets = [];
       const additionalCommitments = [];
 
@@ -627,7 +627,7 @@ describe("LaserGun", function () {
         );
 
         await mockUSDC.connect(user1).approve(await contract.getAddress(), amount);
-        await contract.connect(user1).deposit(amount, await mockUSDC.getAddress(), commitment);
+        await contract.connect(user1).shield(amount, await mockUSDC.getAddress(), commitment);
 
         additionalSecrets.push(secret);
         additionalCommitments.push(commitment);
@@ -636,16 +636,16 @@ describe("LaserGun", function () {
       const allSecrets = [...secrets, ...additionalSecrets];
       const newCommitment = ethers.randomBytes(32);
 
-      // Should succeed with exactly 10 vouchers
+      // Should succeed with exactly 10 Shields
       const tx = await contract.connect(user1).consolidate(allSecrets, newCommitment);
       const receipt = await tx.wait();
 
       expect(receipt.status).to.equal(1);
 
-      // Verify new voucher was created
-      const newVoucher = await contract.getVoucherInfo(newCommitment);
-      expect(newVoucher.exists).to.be.true;
-      expect(newVoucher.token).to.equal(await mockUSDC.getAddress());
+      // Verify new Shield was created
+      const newShield = await contract.getShieldInfo(newCommitment);
+      expect(newShield.exists).to.be.true;
+      expect(newShield.token).to.equal(await mockUSDC.getAddress());
     });
   });
 
@@ -659,7 +659,7 @@ describe("LaserGun", function () {
       );
 
       await mockUSDC.connect(user1).approve(await contract.getAddress(), amount);
-      await contract.connect(user1).deposit(amount, await mockUSDC.getAddress(), commitment);
+      await contract.connect(user1).shield(amount, await mockUSDC.getAddress(), commitment);
     });
 
     it("Should allow admin to set fees", async function () {
@@ -755,11 +755,11 @@ describe("LaserGun", function () {
       );
 
       await mockUSDC.connect(user1).approve(await contract.getAddress(), amount);
-      await contract.connect(user1).deposit(amount, await mockUSDC.getAddress(), commitment);
+      await contract.connect(user1).shield(amount, await mockUSDC.getAddress(), commitment);
     });
 
-    it("Should return correct voucher info", async function () {
-      const info = await contract.getVoucherInfo(commitment);
+    it("Should return correct Shield info", async function () {
+      const info = await contract.getShieldInfo(commitment);
       const expectedAmount = amount - amount * SHIELD_FEE / FEE_DENOMINATOR;
 
       expect(info.exists).to.be.true;
@@ -774,21 +774,21 @@ describe("LaserGun", function () {
       expect(generated).to.equal(commitment);
     });
 
-    it("Should return correct voucher balance", async function () {
+    it("Should return correct Shield balance", async function () {
       const expectedAmount = amount - amount * SHIELD_FEE / FEE_DENOMINATOR;
-      const balance = await contract.connect(user1).getMyVoucherBalance(secret, await mockUSDC.getAddress());
+      const balance = await contract.connect(user1).getMyShieldBalance(secret, await mockUSDC.getAddress());
       expect(balance).to.equal(expectedAmount);
     });
 
-    it("Should return zero for non-existent voucher", async function () {
+    it("Should return zero for non-existent Shield", async function () {
       const wrongSecret = ethers.randomBytes(32);
-      const balance = await contract.connect(user1).getMyVoucherBalance(wrongSecret, await mockUSDC.getAddress());
+      const balance = await contract.connect(user1).getMyShieldBalance(wrongSecret, await mockUSDC.getAddress());
       expect(balance).to.equal(0n);
     });
 
-    it("Should return false for non-existent voucher info", async function () {
+    it("Should return false for non-existent Shield info", async function () {
       const wrongCommitment = ethers.randomBytes(32);
-      const info = await contract.getVoucherInfo(wrongCommitment);
+      const info = await contract.getShieldInfo(wrongCommitment);
       expect(info.exists).to.be.false;
     });
   });
@@ -806,7 +806,7 @@ describe("LaserGun", function () {
 
       await mockDAI.mint(user1.address, amount2);
 
-      // Create vouchers for both tokens
+      // Create Shields for both tokens
       const secret1 = ethers.randomBytes(32);
       const secret2 = ethers.randomBytes(32);
       const commitment1 = ethers.keccak256(
@@ -819,17 +819,17 @@ describe("LaserGun", function () {
       await mockUSDC.connect(user1).approve(await contract.getAddress(), amount1);
       await mockDAI.connect(user1).approve(await contract.getAddress(), amount2);
 
-      await contract.connect(user1).deposit(amount1, await mockUSDC.getAddress(), commitment1);
-      await contract.connect(user1).deposit(amount2, await mockDAI.getAddress(), commitment2);
+      await contract.connect(user1).shield(amount1, await mockUSDC.getAddress(), commitment1);
+      await contract.connect(user1).shield(amount2, await mockDAI.getAddress(), commitment2);
 
-      // Check both vouchers exist
-      const voucher1 = await contract.getVoucherInfo(commitment1);
-      const voucher2 = await contract.getVoucherInfo(commitment2);
+      // Check both Shields exist
+      const Shield1 = await contract.getShieldInfo(commitment1);
+      const Shield2 = await contract.getShieldInfo(commitment2);
 
-      expect(voucher1.exists).to.be.true;
-      expect(voucher1.token).to.equal(await mockUSDC.getAddress());
-      expect(voucher2.exists).to.be.true;
-      expect(voucher2.token).to.equal(await mockDAI.getAddress());
+      expect(Shield1.exists).to.be.true;
+      expect(Shield1.token).to.equal(await mockUSDC.getAddress());
+      expect(Shield2.exists).to.be.true;
+      expect(Shield2.token).to.equal(await mockDAI.getAddress());
 
       // Check separate fee collection
       const usdcFee = amount1 * SHIELD_FEE / FEE_DENOMINATOR;
@@ -851,12 +851,12 @@ describe("LaserGun", function () {
       await mockUSDC.connect(user1).approve(await contract.getAddress(), amount);
 
       // Multiple operations in sequence should work
-      await contract.connect(user1).deposit(amount, await mockUSDC.getAddress(), commitment);
-      await contract.connect(user1).redeem(secret, amount - amount * SHIELD_FEE / FEE_DENOMINATOR, user2.address, ethers.ZeroHash);
+      await contract.connect(user1).shield(amount, await mockUSDC.getAddress(), commitment);
+      await contract.connect(user1).unshield(secret, amount - amount * SHIELD_FEE / FEE_DENOMINATOR, user2.address, ethers.ZeroHash);
 
-      // Voucher should be properly spent
-      const voucher = await contract.getVoucherInfo(commitment);
-      expect(voucher.spent).to.be.true;
+      // Shield should be properly spent
+      const Shield = await contract.getShieldInfo(commitment);
+      expect(Shield.spent).to.be.true;
     });
 
     it("Should handle maximum values correctly", async function () {
@@ -871,13 +871,13 @@ describe("LaserGun", function () {
         ethers.solidityPacked(["bytes32", "address"], [secret, user1.address])
       );
 
-      await contract.connect(user1).deposit(largeAmount, await mockUSDC.getAddress(), commitment);
+      await contract.connect(user1).shield(largeAmount, await mockUSDC.getAddress(), commitment);
 
-      const voucher = await contract.getVoucherInfo(commitment);
+      const Shield = await contract.getShieldInfo(commitment);
       const expectedNetAmount = largeAmount - largeAmount * SHIELD_FEE / FEE_DENOMINATOR;
 
-      expect(voucher.amount).to.equal(expectedNetAmount);
-      expect(voucher.exists).to.be.true;
+      expect(Shield.amount).to.equal(expectedNetAmount);
+      expect(Shield.exists).to.be.true;
     });
 
     it("Should handle minimum amounts correctly", async function () {
@@ -891,14 +891,14 @@ describe("LaserGun", function () {
         ethers.solidityPacked(["bytes32", "address"], [secret, user1.address])
       );
 
-      await contract.connect(user1).deposit(minAmount, await mockUSDC.getAddress(), commitment);
+      await contract.connect(user1).shield(minAmount, await mockUSDC.getAddress(), commitment);
 
-      const voucher = await contract.getVoucherInfo(commitment);
+      const Shield = await contract.getShieldInfo(commitment);
       // With 0.25% fee, 1 unit should result in 0 net amount (due to rounding)
       const expectedNetAmount = minAmount - minAmount * SHIELD_FEE / FEE_DENOMINATOR;
 
-      expect(voucher.amount).to.equal(expectedNetAmount);
-      expect(voucher.exists).to.be.true;
+      expect(Shield.amount).to.equal(expectedNetAmount);
+      expect(Shield.exists).to.be.true;
     });
 
     it("Should preserve precision in fee calculations", async function () {
@@ -912,13 +912,13 @@ describe("LaserGun", function () {
         ethers.solidityPacked(["bytes32", "address"], [secret, user1.address])
       );
 
-      await contract.connect(user1).deposit(amount, await mockUSDC.getAddress(), commitment);
+      await contract.connect(user1).shield(amount, await mockUSDC.getAddress(), commitment);
 
       const expectedFee = amount * SHIELD_FEE / FEE_DENOMINATOR;
       const expectedNetAmount = amount - expectedFee;
 
-      const voucher = await contract.getVoucherInfo(commitment);
-      expect(voucher.amount).to.equal(expectedNetAmount);
+      const Shield = await contract.getShieldInfo(commitment);
+      expect(Shield.amount).to.equal(expectedNetAmount);
 
       const collectedFee = await contract.collectedFees(await mockUSDC.getAddress());
       expect(collectedFee).to.equal(expectedFee);
@@ -930,7 +930,7 @@ describe("LaserGun", function () {
   });
 
   describe("Gas Optimization Tests", function () {
-    it("Should use reasonable gas for deposit", async function () {
+    it("Should use reasonable gas for shield", async function () {
       const amount = ethers.parseUnits("100", 6);
       const secret = ethers.randomBytes(32);
       const commitment = ethers.keccak256(
@@ -939,15 +939,15 @@ describe("LaserGun", function () {
 
       await mockUSDC.connect(user1).approve(await contract.getAddress(), amount);
 
-      const tx = await contract.connect(user1).deposit(amount, await mockUSDC.getAddress(), commitment);
+      const tx = await contract.connect(user1).shield(amount, await mockUSDC.getAddress(), commitment);
       const receipt = await tx.wait();
 
       // Gas should be reasonable (adjust based on actual implementation)
       expect(receipt.gasUsed).to.be.lt(200000n); // Less than 200k gas
     });
 
-    it("Should use reasonable gas for redeem", async function () {
-      // Setup voucher
+    it("Should use reasonable gas for unshield", async function () {
+      // Setup Shield
       const amount = ethers.parseUnits("100", 6);
       const secret = ethers.randomBytes(32);
       const commitment = ethers.keccak256(
@@ -955,19 +955,19 @@ describe("LaserGun", function () {
       );
 
       await mockUSDC.connect(user1).approve(await contract.getAddress(), amount);
-      await contract.connect(user1).deposit(amount, await mockUSDC.getAddress(), commitment);
+      await contract.connect(user1).shield(amount, await mockUSDC.getAddress(), commitment);
 
       const netAmount = amount - amount * SHIELD_FEE / FEE_DENOMINATOR;
 
-      // Test redeem gas
-      const tx = await contract.connect(user1).redeem(secret, netAmount, user2.address, ethers.ZeroHash);
+      // Test unshield gas
+      const tx = await contract.connect(user1).unshield(secret, netAmount, user2.address, ethers.ZeroHash);
       const receipt = await tx.wait();
 
       expect(receipt.gasUsed).to.be.lt(150000n); // Less than 150k gas
     });
 
     it("Should use reasonable gas for consolidation", async function () {
-      // Create multiple small vouchers
+      // Create multiple small Shields
       const secrets = [];
       const amount = ethers.parseUnits("10", 6);
 
@@ -978,7 +978,7 @@ describe("LaserGun", function () {
         );
 
         await mockUSDC.connect(user1).approve(await contract.getAddress(), amount);
-        await contract.connect(user1).deposit(amount, await mockUSDC.getAddress(), commitment);
+        await contract.connect(user1).shield(amount, await mockUSDC.getAddress(), commitment);
         secrets.push(secret);
       }
 
@@ -988,7 +988,7 @@ describe("LaserGun", function () {
       const tx = await contract.connect(user1).consolidate(secrets, newCommitment);
       const receipt = await tx.wait();
 
-      expect(receipt.gasUsed).to.be.lt(300000n); // Less than 300k gas for 3 vouchers
+      expect(receipt.gasUsed).to.be.lt(300000n); // Less than 300k gas for 3 Shields
     });
   });
 });
