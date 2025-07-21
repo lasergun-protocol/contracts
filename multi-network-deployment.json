@@ -1,0 +1,26 @@
+{
+  "contractName": "LaserGun",
+  "salt": "0x4c617365724775324465706c6f79000000000000000000000000000000000000",
+  "deployer": "0xf93fa9730Ad88Dc6D1334c0d1532cd3DEcB1b41A",
+  "predictedProxyAddress": "0xAe5F7c2cE15A408c383788d59DE0385a542F7593",
+  "deploymentInstructions": {
+    "polygon": "npm run deploy:polygon",
+    "arbitrum": "npm run deploy:arbitrum",
+    "avalanche": "npm run deploy:avalanche",
+    "bsc": "npm run deploy:bsc"
+  },
+  "networks": {
+    "amoy": {
+      "proxy": "0x8bFE87a6309cb23Af0c15fc1c770dAE384AE3F1F",
+      "implementation": "0xdF84fCb0Ef3B262d0f4d6be20C90442c1B5600b0",
+      "chainId": 80002,
+      "deployedAt": "2025-07-21T19:32:26.757Z"
+    },
+    "avalanche": {
+      "proxy": "0xAe5F7c2cE15A408c383788d59DE0385a542F7593",
+      "implementation": "0xC2093E795A7c56673629d36434b86C68914E1440",
+      "chainId": 43114,
+      "deployedAt": "2025-07-21T19:37:12.928Z"
+    }
+  }
+}
