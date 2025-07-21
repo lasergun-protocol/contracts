@@ -42,7 +42,7 @@ contract LaserGun is
     // Constants
     uint256 public constant MAX_FEE_PERCENT = 1000; // 10% maximum fee
     uint256 public constant FEE_DENOMINATOR = 10000; // 100% = 10000 basis points
-    uint256 public constant MAX_CONSOLIDATE_ShieldS = 10; // Maximum Shields in consolidate
+    uint256 public constant MAX_CONSOLIDATE_SHIELDS = 10; // Maximum Shields in consolidate
     uint256 public constant MIN_AMOUNT = 1; // Minimum amount (1 wei) to prevent dust attacks
     
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -227,7 +227,7 @@ contract LaserGun is
         bytes32 newCommitment
     ) external nonReentrant whenNotPaused {
         if (secrets.length == 0) revert NoSecretsProvided();
-        if (secrets.length > MAX_CONSOLIDATE_ShieldS) revert TooManyShieldsToConsolidate();
+        if (secrets.length > MAX_CONSOLIDATE_SHIELDS) revert TooManyShieldsToConsolidate();
         if (shields[newCommitment].exists) revert CommitmentAlreadyExists();
         if(newCommitment == bytes32(0)) revert EmptyCommitment();
         uint256 totalAmount = 0;

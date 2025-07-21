@@ -105,7 +105,7 @@ describe("LaserGun", function () {
     it("Should have correct constants", async function () {
       expect(await contract.MAX_FEE_PERCENT()).to.equal(1000n);
       expect(await contract.FEE_DENOMINATOR()).to.equal(10000n);
-      expect(await contract.MAX_CONSOLIDATE_ShieldS()).to.equal(10n);
+      expect(await contract.MAX_CONSOLIDATE_SHIELDS()).to.equal(10n);
       expect(await contract.MIN_AMOUNT()).to.equal(1n);
     });
   });
@@ -566,7 +566,7 @@ describe("LaserGun", function () {
     });
 
     it("Should reject too many Shields", async function () {
-      // Create array with 11 secrets (exceeds MAX_CONSOLIDATE_ShieldS = 10)
+      // Create array with 11 secrets (exceeds MAX_CONSOLIDATE_SHIELDS = 10)
       const tooManySecrets = new Array(11).fill(ethers.randomBytes(32));
       const newCommitment = ethers.randomBytes(32);
 
@@ -615,7 +615,7 @@ describe("LaserGun", function () {
     });
 
     it("Should consolidate with maximum allowed Shields", async function () {
-      // Create additional Shields to reach MAX_CONSOLIDATE_ShieldS (10)
+      // Create additional Shields to reach MAX_CONSOLIDATE_SHIELDS (10)
       const additionalSecrets = [];
       const additionalCommitments = [];
 
