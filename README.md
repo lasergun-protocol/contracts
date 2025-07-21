@@ -104,7 +104,7 @@ Merge multiple Shields into single Shield
 #### `getShieldInfo(bytes32 commitment) → (bool exists, address token, uint256 amount, uint256 timestamp, bool spent)`
 Get Shield details
 
-#### `getMyShieldBalance(bytes32 secret, address token) → uint256`
+#### `getShieldBalance(bytes32 secret, address token) → uint256`
 Check Shield balance for specific secret
 
 #### `generateCommitment(bytes32 secret, address recipient) → bytes32`
@@ -167,7 +167,7 @@ npm test -- --grep "Security"
 - **Proxy**: `0x...` ([View on PolygonScan](https://polygonscan.com/address/0x...)) )
 
 ### Amoy Testnet
-- **Proxy**: `0x87de1BFddcEC6374B1b475e3D82E9539B150f987` ([View on PolygonScan](https://mumbai.polygonscan.com/address/0x87de1BFddcEC6374B1b475e3D82E9539B150f987)) 
+- **Proxy**: `0x7a9046293dF17d2ec81eF4606376bFE1b45A2f18` ([View on PolygonScan](https://mumbai.polygonscan.com/address/0x7a9046293dF17d2ec81eF4606376bFE1b45A2f18)) 
 
 ## 🔧 Development
 

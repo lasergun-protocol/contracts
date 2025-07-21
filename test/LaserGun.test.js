@@ -776,13 +776,13 @@ describe("LaserGun", function () {
 
     it("Should return correct Shield balance", async function () {
       const expectedAmount = amount - amount * SHIELD_FEE / FEE_DENOMINATOR;
-      const balance = await contract.connect(user1).getMyShieldBalance(secret, await mockUSDC.getAddress());
+      const balance = await contract.connect(user1).getShieldBalance(secret, await mockUSDC.getAddress());
       expect(balance).to.equal(expectedAmount);
     });
 
     it("Should return zero for non-existent Shield", async function () {
       const wrongSecret = ethers.randomBytes(32);
-      const balance = await contract.connect(user1).getMyShieldBalance(wrongSecret, await mockUSDC.getAddress());
+      const balance = await contract.connect(user1).getShieldBalance(wrongSecret, await mockUSDC.getAddress());
       expect(balance).to.equal(0n);
     });
 
