@@ -24,10 +24,11 @@ async function main() {
   // LaserGun.initialize(admin, shieldFeePercent, unshieldFeePercent)
   const SHIELD_FEE = 25;    // 0.25% (25 basis points)
   const UNSHIELD_FEE = 25;  // 0.25% (25 basis points)
+  const TRANSFER_FEE = 100; // 1% for transfer 
   
   const laserGun = await upgrades.deployProxy(
     LaserGun, 
-    [deployer.address, SHIELD_FEE, UNSHIELD_FEE], // ✅ Правильные параметры
+    [deployer.address, SHIELD_FEE, UNSHIELD_FEE, TRANSFER_FEE], // ✅ Правильные параметры
     {
       initializer: 'initialize',
       kind: 'uups'
@@ -65,8 +66,10 @@ async function main() {
     // Проверяем fees
     const shieldFee = await laserGun.shieldFeePercent();
     const unshieldFee = await laserGun.unshieldFeePercent();
+    const  transferFee = await laserGun.transferFeePercent();
     console.log("💰 Shield fee:", shieldFee.toString(), "basis points");
     console.log("💰 Unshield fee:", unshieldFee.toString(), "basis points");
+    console.log("💰 Transfer fee:", transferFee.toString(), "basis points");
     
     // Проверяем, что контракт не на паузе
     const paused = await laserGun.paused();
@@ -97,7 +100,7 @@ async function main() {
   console.log("Deployer:             ", deployer.address);
   console.log("Shield Fee:           ", SHIELD_FEE, "basis points (0.25%)");
   console.log("Unshield Fee:         ", UNSHIELD_FEE, "basis points (0.25%)");
-  console.log("Gas Used:             ", "~2,500,000 gas"); // примерная оценка
+  console.log("Transfer Fee:         ", TRANSFER_FEE, "basis points (1%)"); 
   console.log("═══════════════════════════════════════");
   
   // Сохраняем информацию о deployment

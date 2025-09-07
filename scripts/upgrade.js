@@ -83,19 +83,8 @@ async function main() {
     // Проверяем, что контракт не на паузе
     const paused = await upgraded.paused();
     console.log("⏸️ Contract paused:", paused);
-    
-    // Проверяем fees
-    const shieldFee = await upgraded.shieldFeePercent();
-    const unshieldFee = await upgraded.unshieldFeePercent();
-    console.log("💰 Shield fee:", shieldFee.toString(), "basis points");
-    console.log("💰 Unshield fee:", unshieldFee.toString(), "basis points");
-    
-    // Проверяем константы
-    const maxFee = await upgraded.MAX_FEE_PERCENT();
-    const feeDenominator = await upgraded.FEE_DENOMINATOR();
-    console.log("🔒 Max fee percent:", maxFee.toString());
-    console.log("🔒 Fee denominator:", feeDenominator.toString());
-    
+     
+     
     // Если есть новые функции в V2, тестируем их
     try {
       // Пример: если добавили новую функцию version()
