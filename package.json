@@ -1,6 +1,6 @@
 {
   "name": "lasergun",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Anonymous token transfer system with zero-knowledge privacy",
   "main": "index.js",
   "scripts": {
