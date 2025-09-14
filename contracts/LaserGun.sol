@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
+import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import {ILaserGun} from "./interfaces/ILaserGun.sol";
 
 contract LaserGun is
@@ -83,16 +83,16 @@ contract LaserGun is
 
     // Create Shield by depositing tokens (Shield operation)
     function shield(uint256 amount, address token, bytes32 commitment) external nonReentrant whenNotPaused {
-        validateShieldParams(amount, token, commitment);
+        _validateShieldParams(amount, token, commitment);
         if (shields[commitment].exists) revert CommitmentAlreadyExists();
 
         // Calculate fee using library
-        uint256 fee = calculateFee(amount, shieldFeePercent);
+        uint256 fee = _calculateFee(amount, shieldFeePercent);
         uint256 netAmount = amount - fee;
         if (netAmount == 0) revert NetAmountMustBePositive();
 
         // Transfer tokens from sender (including fee)
-        IERC20Upgradeable(token).transferFrom(msg.sender, address(this), amount);
+        IERC20(token).transferFrom(msg.sender, address(this), amount);
 
         // Track collected fees
         collectedFees[token] += fee;
@@ -129,7 +129,7 @@ contract LaserGun is
         if (redeemAmount > currentShield.amount) revert InsufficientShieldBalance();
 
         // Calculate fee using library
-        uint256 fee = calculateFee(redeemAmount, unshieldFeePercent);
+        uint256 fee = _calculateFee(redeemAmount, unshieldFeePercent);
         uint256 netRedeemAmount = redeemAmount - fee;
         uint256 remainingAmount = currentShield.amount - redeemAmount;
 
@@ -141,7 +141,7 @@ contract LaserGun is
 
         // Send net redeemed amount to recipient
         if (netRedeemAmount > 0) {
-            IERC20Upgradeable(currentShield.token).transfer(recipient, netRedeemAmount);
+            IERC20(currentShield.token).transfer(recipient, netRedeemAmount);
         }
 
         // Create new Shield for remaining balance if needed
@@ -188,7 +188,7 @@ contract LaserGun is
         uint256 transferFee = (amount * transferFeePercent) / FEE_DENOMINATOR;
 
         // Check if the transfer fee exceeds the maximum allowed fee
-        if (transferFee > MAX_FEE) revert FeeExceedsMaximum();
+        if (transferFee > MAX_FEE_PERCENT) revert FeeExceedsMaximum();
 
         // Calculate the net amount to be transferred (amount - transfer fee)
         uint256 netAmount = amount - transferFee;
@@ -209,7 +209,7 @@ contract LaserGun is
         uint256 remainingAmount = senderShield.amount - amount;
         if (remainingAmount > 0) {
             uint256 nonce = userNonces[msg.sender]++;
-            bytes32 senderNewCommitment = generateSenderCommitment(msg.sender, nonce);
+            bytes32 senderNewCommitment = _generateSenderCommitment(msg.sender, nonce);
 
             shields[senderNewCommitment] = Shield({
                 token: senderShield.token,
@@ -230,39 +230,34 @@ contract LaserGun is
         collectedFees[senderShield.token] += transferFee;
     }
 
+    function _getShield(bytes32 commitment) internal view returns (Shield memory currentShield) {
+        currentShield = shields[commitment];
+        if (!currentShield.exists) revert ShieldDoesNotExist();
+        if (currentShield.spent) revert ShieldAlreadySpent();
+    }
+
     // Consolidate multiple Shields into one
     function consolidate(bytes32[] calldata secrets, bytes32 newCommitment) external nonReentrant whenNotPaused {
         if (secrets.length == 0) revert NoSecretsProvided();
         if (secrets.length > MAX_CONSOLIDATE_SHIELDS) revert TooManyShieldsToConsolidate();
         if (shields[newCommitment].exists) revert CommitmentAlreadyExists();
         if (newCommitment == bytes32(0)) revert EmptyCommitment();
-        uint256 totalAmount = 0;
-        address tokenAddress = address(0);
-        bytes32[] memory oldCommitments = new bytes32[](secrets.length);
-
-        for (uint i = 0; i < secrets.length; i++) {
-            bytes32 commitment = this.generateCommitment(secrets[i], msg.sender);
-            oldCommitments[i] = commitment;
-
-            Shield storage Shield = shields[commitment];
-            if (!Shield.exists) revert ShieldDoesNotExist();
-            if (Shield.spent) revert ShieldAlreadySpent();
-
-            if (tokenAddress == address(0)) {
-                tokenAddress = Shield.token;
-            } else {
-                if (Shield.token != tokenAddress) revert AllShieldsMustUseSameToken();
-            }
-
-            // Check for overflow using library
-            if (wouldOverflow(totalAmount, Shield.amount)) revert AmountOverflow();
-            totalAmount += Shield.amount;
-            Shield.spent = true;
-        }
-
-        if (totalAmount == 0) revert TotalAmountMustBePositive();
+        bytes32 commitment = this.generateCommitment(secrets[0], msg.sender);
+        Shield memory currentShield = _getShield(commitment);
+        uint256 totalAmount = currentShield.amount;
+        address tokenAddress = currentShield.token;
         if (tokenAddress == address(0)) revert InvalidToken();
-
+        bytes32[] memory oldCommitments = new bytes32[](secrets.length);
+        for (uint256 i = 1; i < secrets.length; i++) {
+            commitment = this.generateCommitment(secrets[i], msg.sender);
+            oldCommitments[i] = commitment;
+            currentShield = _getShield(commitment);
+            if (currentShield.token != tokenAddress) revert AllShieldsMustUseSameToken();
+            if (_wouldOverflow(totalAmount, currentShield.amount)) revert AmountOverflow();
+            totalAmount += currentShield.amount;
+            shields[commitment].spent = true;
+        }
+        if (totalAmount == 0) revert TotalAmountMustBePositive();
         // Create new consolidated Shield
         shields[newCommitment] = Shield({
             token: tokenAddress,
@@ -298,7 +293,7 @@ contract LaserGun is
         if (amount == 0) revert NoFeesToWithdraw();
 
         collectedFees[token] = 0;
-        IERC20Upgradeable(token).transfer(recipient, amount);
+        IERC20(token).transfer(recipient, amount);
     }
 
     // Pause/unpause functions
@@ -315,7 +310,7 @@ contract LaserGun is
         uint256 amount = collectedFees[token];
         if (amount == 0) revert NoFeesToWithdraw();
         collectedFees[token] = 0;
-        IERC20Upgradeable(token).transfer(recipient, amount);
+        IERC20(token).transfer(recipient, amount);
     }
 
     // View functions
@@ -348,6 +343,7 @@ contract LaserGun is
     }
 
     // Upgrade authorization
+    // solhint-disable-next-line
     function _authorizeUpgrade(address newImplementation) internal override onlyRole(UPGRADER_ROLE) {}
 
     /**
@@ -357,7 +353,7 @@ contract LaserGun is
      * @param commitment The commitment hash
      */
 
-    function validateShieldParams(uint256 amount, address token, bytes32 commitment) internal pure {
+    function _validateShieldParams(uint256 amount, address token, bytes32 commitment) internal pure {
         if (!(amount > 0)) revert ZeroAmount();
         if (token == address(0)) revert EmptyToken();
         if (commitment == bytes32(0)) revert InvalidCommitment();
@@ -369,7 +365,7 @@ contract LaserGun is
      * @param b Second amount
      * @return True if addition would overflow
      */
-    function wouldOverflow(uint256 a, uint256 b) internal pure returns (bool) {
+    function _wouldOverflow(uint256 a, uint256 b) internal pure returns (bool) {
         return a > type(uint256).max - b;
     }
 
@@ -379,7 +375,7 @@ contract LaserGun is
      * @param feePercent Fee percentage in basis points
      * @return The fee amount
      */
-    function calculateFee(uint256 amount, uint256 feePercent) internal pure returns (uint256) {
+    function _calculateFee(uint256 amount, uint256 feePercent) internal pure returns (uint256) {
         return (amount * feePercent) / FEE_DENOMINATOR;
     }
 
@@ -399,7 +395,7 @@ contract LaserGun is
      * @param nonce The nonce value
      * @return The commitment hash
      */
-    function generateSenderCommitment(address sender, uint256 nonce) internal pure returns (bytes32) {
+    function _generateSenderCommitment(address sender, uint256 nonce) internal pure returns (bytes32) {
         return keccak256(abi.encodePacked(sender, nonce));
     }
 }

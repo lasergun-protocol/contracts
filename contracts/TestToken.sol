@@ -25,7 +25,7 @@ contract TestToken is ERC20, Ownable {
         string memory symbol,
         uint8 decimals_,
         uint256 initialSupply
-    ) ERC20(name, symbol) Ownable() {
+    ) ERC20(name, symbol) Ownable(msg.sender) {
         _decimals = decimals_;
         
         // Минтим начальный supply владельцу

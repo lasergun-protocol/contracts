@@ -28,8 +28,7 @@ interface ILaserGun {
     error InvalidToken();
     error NoFeesToWithdraw();
     error AmountTooSmall();
-    error EncryptedSecretCannotBeEmpty();
-    error ExpectedPause();
+    error EncryptedSecretCannotBeEmpty(); 
     error EmptyCommitment();
     error ZeroAmount();
     error EmptyToken();
@@ -70,7 +69,7 @@ interface ILaserGun {
     function isCommitmentActive(bytes32 commitment) external view returns (bool);
 
     // Admin functions
-    function setFees(uint256 _shieldFeePercent, uint256 _unshieldFeePercent) external;
+    function setFees(uint256 _shieldFeePercent, uint256 _unshieldFeePercent, uint256 _transferFeePercent) external;
 
     function withdrawFees(address token, address recipient) external;
 
