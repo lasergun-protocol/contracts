@@ -8,5 +8,17 @@
   "contractName": "LaserGun",
   "proxyKind": "uups",
   "shieldFeePercent": 25,
-  "unshieldFeePercent": 25
+  "unshieldFeePercent": 25,
+  "upgrades": [
+    {
+      "upgradedAt": "2025-09-14T10:00:44.783Z",
+      "upgrader": "0xf93fa9730Ad88Dc6D1334c0d1532cd3DEcB1b41A",
+      "previousImplementation": "0xC2093E795A7c56673629d36434b86C68914E1440",
+      "newImplementation": "0xC2093E795A7c56673629d36434b86C68914E1440",
+      "network": "amoy",
+      "chainId": 80002
+    }
+  ],
+  "currentImplementation": "0xC2093E795A7c56673629d36434b86C68914E1440",
+  "lastUpgraded": "2025-09-14T10:00:44.783Z"
 }

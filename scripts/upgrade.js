@@ -46,7 +46,22 @@ async function main() {
   console.log("🚀 Upgrading contract...");
   
   // ✅ ETHERS V6 + OpenZeppelin Upgrades
-  const upgraded = await upgrades.upgradeProxy(proxyAddress, LaserGunV2);
+  const upgraded = await upgrades.upgradeProxy(proxyAddress, LaserGunV2
+    /* , {
+    unsafeAllow: [
+        'storage-layout-error',
+        'state-variable-reorder', 
+        'state-variable-assignment',
+        'constructor',
+        'delegatecall',
+        'selfdestruct',
+        'missing-public-upgradeto',
+        'external-library-linking'
+    ],
+    unsafeAllowCustomTypes: true,
+    unsafeSkipStorageCheck: true,
+    unsafeAllowLinkedLibraries: true
+} */);
   
   // ✅ ETHERS V6 - правильное ожидание upgrade
   await upgraded.waitForDeployment();
