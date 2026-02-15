@@ -5,7 +5,6 @@
       "not-rely-on-time": "off",
       "avoid-low-level-calls": "off",
       "avoid-sha3": "warn",
-      "bracket-align": "off",
       "code-complexity": ["error", 8],
       "compiler-version": ["error", "^0.8.0"],
       "const-name-snakecase": "error",

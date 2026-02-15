@@ -12,7 +12,22 @@ module.exports = {
         enabled: true,
         runs: 200,
       },
+      viaIR: true,
     },
+    libraries: {
+      "contracts/lib/ShieldOperations.sol": {
+        ShieldOperations: "0x0000000000000000000000000000000000000000"
+      },
+      "contracts/lib/EscrowOperations.sol": {
+        EscrowOperations: "0x0000000000000000000000000000000000000000"
+      },
+      "contracts/lib/Utils.sol": {
+        Utils: "0x0000000000000000000000000000000000000000"
+      },
+      "contracts/lib/ShieldFlags.sol": {
+        ShieldFlags: "0x0000000000000000000000000000000000000000"
+      }
+    }
   },
   networks: {
     hardhat: {
@@ -43,6 +58,8 @@ module.exports = {
     apiKey: {
       polygon: process.env.POLYGONSCAN_API_KEY,
       amoy: process.env.POLYGONSCAN_API_KEY,
+      avalanche: process.env.SNOWTRACE_API_KEY, // Добавлен API ключ для Avalanche
+      avalancheFujiTestnet: process.env.SNOWTRACE_API_KEY, // Для тестовой сети Fuji
     },
     customChains: [
       {
@@ -51,6 +68,22 @@ module.exports = {
         urls: {
           apiURL: "https://api-amoy.polygonscan.com/api",
           browserURL: "https://amoy.polygonscan.com"
+        }
+      },
+      {
+        network: "avalanche",
+        chainId: 43114,
+        urls: {
+          apiURL: "https://api.snowtrace.io/api",
+          browserURL: "https://snowtrace.io"
+        }
+      },
+      {
+        network: "avalancheFujiTestnet",
+        chainId: 43113,
+        urls: {
+          apiURL: "https://api-testnet.snowtrace.io/api",
+          browserURL: "https://testnet.snowtrace.io"
         }
       }
     ]

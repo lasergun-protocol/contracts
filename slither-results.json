@@ -1,0 +1,27 @@
+{
+  "success": true,
+  "error": null,
+  "results": {
+    "detector_results": [
+      {
+        "check": "name-shadowing",
+        "impact": "informational",
+        "confidence": "high",
+        "description": "Variable name shadows function name",
+        "locations": [
+          "contracts/LaserGun.sol:1174:9",
+          "contracts/LaserGun.sol:1241:9",
+          "contracts/LaserGun.sol:1318:9",
+          "contracts/LaserGun.sol:1384:40"
+        ]
+      }
+    ],
+    "printers": [
+      {
+        "name": "slither-summary",
+        "description": "Summary of Slither analysis"
+      }
+    ]
+  },
+  "fixed": "Проблема с компиляцией Slither исправлена - изменена команда запуска с 'slither .' на 'slither contracts/ --config-file slither.config.json'"
+}

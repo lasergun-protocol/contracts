@@ -1,0 +1,109 @@
+
+> @lasergun-protocol/contracts@2.0.1 security
+> slither contracts/ --config-file slither.config.json
+
+'solc --version' running
+'solc @openzeppelin/=node_modules/@openzeppelin/ contracts/LaserGun.sol --combined-json abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes --allow-paths .,/home/bgrusnak/Projects/lasergun/contracts/contracts' running
+Compilation warnings/errors on contracts/LaserGun.sol:
+Warning: This declaration has the same name as another declaration.
+    --> contracts/LaserGun.sol:1174:9:
+     |
+1174 |         Shield storage shield = shields[commitment];
+     |         ^^^^^^^^^^^^^^^^^^^^^
+Note: The other declaration is here:
+   --> contracts/LaserGun.sol:215:5:
+    |
+215 |     function shield(
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning: This declaration has the same name as another declaration.
+    --> contracts/LaserGun.sol:1241:9:
+     |
+1241 |         Shield storage shield = shields[escrow.commitment];
+     |         ^^^^^^^^^^^^^^^^^^^^^
+Note: The other declaration is here:
+   --> contracts/LaserGun.sol:215:5:
+    |
+215 |     function shield(
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning: This declaration has the same name as another declaration.
+    --> contracts/LaserGun.sol:1318:9:
+     |
+1318 |         Shield storage shield = shields[escrow.commitment];
+     |         ^^^^^^^^^^^^^^^^^^^^^
+Note: The other declaration is here:
+   --> contracts/LaserGun.sol:215:5:
+    |
+215 |     function shield(
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning: This declaration has the same name as another declaration.
+    --> contracts/LaserGun.sol:1384:40:
+     |
+1384 |         returns (Escrow memory escrow, Shield memory shield) {
+     |                                        ^^^^^^^^^^^^^^^^^^^^
+Note: The other declaration is here:
+   --> contracts/LaserGun.sol:215:5:
+    |
+215 |     function shield(
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning: This declaration has the same name as another declaration.
+    --> contracts/LaserGun.sol:1401:9:
+     |
+1401 |         Shield memory shield = shields[escrow.commitment];
+     |         ^^^^^^^^^^^^^^^^^^^^
+Note: The other declaration is here:
+   --> contracts/LaserGun.sol:215:5:
+    |
+215 |     function shield(
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning: This declaration has the same name as another declaration.
+    --> contracts/LaserGun.sol:1421:9:
+     |
+1421 |         Shield memory shield = shields[escrow.commitment];
+     |         ^^^^^^^^^^^^^^^^^^^^
+Note: The other declaration is here:
+   --> contracts/LaserGun.sol:215:5:
+    |
+215 |     function shield(
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning: Contract code size is 35180 bytes and exceeds 24576 bytes (a limit introduced in Spurious Dragon). This contract may not be deployable on Mainnet. Consider enabling the optimizer (with a low "runs" value!), turning off revert strings, or using libraries.
+  --> contracts/LaserGun.sol:41:1:
+   |
+41 | contract LaserGun is
+   | ^ (Relevant source part starts here and spans across multiple lines).
+
+
+Traceback (most recent call last):
+  File "/home/bgrusnak/miniconda3/bin/slither", line 7, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/home/bgrusnak/miniconda3/lib/python3.13/site-packages/slither/__main__.py", line 760, in main
+    main_impl(all_detector_classes=detectors, all_printer_classes=printers)
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bgrusnak/miniconda3/lib/python3.13/site-packages/slither/__main__.py", line 865, in main_impl
+    ) = process_all(filename, args, detector_classes, printer_classes)
+        ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bgrusnak/miniconda3/lib/python3.13/site-packages/slither/__main__.py", line 106, in process_all
+    ) = process_single(compilation, args, detector_classes, printer_classes)
+        ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bgrusnak/miniconda3/lib/python3.13/site-packages/slither/__main__.py", line 79, in process_single
+    slither = Slither(target, ast_format=ast, **vars(args))
+  File "/home/bgrusnak/miniconda3/lib/python3.13/site-packages/slither/slither.py", line 197, in __init__
+    self._init_parsing_and_analyses(kwargs.get("skip_analyze", False))
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bgrusnak/miniconda3/lib/python3.13/site-packages/slither/slither.py", line 206, in _init_parsing_and_analyses
+    raise e
+  File "/home/bgrusnak/miniconda3/lib/python3.13/site-packages/slither/slither.py", line 202, in _init_parsing_and_analyses
+    parser.parse_contracts()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/bgrusnak/miniconda3/lib/python3.13/site-packages/slither/solc_parsing/slither_compilation_unit_solc.py", line 502, in parse_contracts
+    target = resolve_remapping_and_renaming(contract_parser, i)
+  File "/home/bgrusnak/miniconda3/lib/python3.13/site-packages/slither/solc_parsing/slither_compilation_unit_solc.py", line 488, in resolve_remapping_and_renaming
+    assert target, f"Contract {contract_name} not found"
+           ^^^^^^
+AssertionError: Contract ITypes.ITypes not found

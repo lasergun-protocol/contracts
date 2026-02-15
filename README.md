@@ -13,6 +13,26 @@ Anonymous Shield is a privacy-preserving smart contract system that enables anon
 - **Secure**: Multi-role access control and emergency pause functionality
 - **Upgradeable**: UUPS proxy pattern for future improvements
 - **Fee System**: Configurable fees for shield/unshield operations
+- **Escrow Support**: Two-phase confirmation mechanism for enhanced security
+
+## Escrow Mechanism
+
+The LaserGun contract includes an escrow mechanism that provides an additional layer of security for token transfers. This feature allows senders to create escrow shields that require explicit confirmation before funds can be released to recipients.
+
+### Key Features
+
+- **Two-Phase Confirmation**: Sender creates escrow and must confirm before release
+- **Time-Bound Confirmation**: Configurable confirmation periods (1 hour to 30 days)
+- **Cancellation Option**: Senders can cancel unconfirmed escrows or after deadline expiration
+- **Privacy Preservation**: All escrow operations maintain the same privacy guarantees as regular shields
+
+### Escrow Workflow
+
+1. **Create Escrow**: Sender creates an escrow shield with recipient and confirmation period
+2. **Confirm Escrow**: Sender explicitly confirms the transaction within the deadline
+3. **Release Funds**: After confirmation, sender releases funds to recipient using the secret
+
+For detailed documentation, see [Escrow Mechanism Documentation](./docs/escrow-mechanism.md) and [Escrow Usage Example](./examples/escrow-example.js).
 
 ## Architecture
 
@@ -77,10 +97,53 @@ npm run node  # In separate terminal
 npm run deploy:localhost
 
 # Deploy to testnet
-npm run deploy:mumbai
+npm run deploy:amoy
 
 # Deploy to mainnet
 npm run deploy:polygon
+
+# Deploy to Avalanche
+npm run deploy:avalanche
+```
+
+### Contract Verification
+
+#### Automatic Verification (Recommended)
+
+```bash
+# Deploy with automatic verification
+npm run deploy:auto:amoy      # Amoy testnet
+npm run deploy:auto:polygon   # Polygon mainnet
+npm run deploy:auto:avalanche # Avalanche mainnet
+```
+
+#### Manual Verification
+
+```bash
+# Verify after deployment
+npm run verify:amoy           # Amoy testnet
+npm run verify:polygon        # Polygon mainnet
+npm run verify:avalanche      # Avalanche mainnet
+
+# Manual verification with specific address
+npm run verify:manual:amoy <implementation_address>
+npm run verify:manual:polygon <implementation_address>
+npm run verify:manual:avalanche <implementation_address>
+```
+
+#### Verification Requirements
+
+To verify contracts, you need to add the following API keys to your `.env` file:
+
+```bash
+# For Polygon/Amoy verification
+POLYGONSCAN_API_KEY=your_polygonscan_api_key_here
+
+# For Avalanche verification
+SNOWTRACE_API_KEY=your_snowtrace_api_key_here
+
+# Enable automatic verification after deployment
+AUTO_VERIFY=true
 ```
 
 ## Contract API
@@ -98,6 +161,20 @@ Transfer portion of Shield to another user
 
 #### `consolidate(bytes32[] secrets, bytes32 newCommitment)`
 Merge multiple Shields into single Shield
+
+### Escrow Functions
+
+#### `createEscrowShield(uint256 amount, address token, bytes32 commitment, address recipient, uint256 confirmationPeriod, bytes32 bloomFilter)`
+Create an escrow shield with confirmation requirement
+
+#### `confirmEscrow(bytes32 commitment)`
+Confirm an escrow shield by the sender
+
+#### `releaseEscrow(bytes32 commitment, bytes32 secret)`
+Release confirmed escrow funds to recipient
+
+#### `cancelEscrow(bytes32 commitment, bytes32 secret)`
+Cancel an escrow and return funds to sender
 
 ### View Functions
 
@@ -137,6 +214,10 @@ Generate commitment hash
 | Transfer | ~180,000 | Including remainder |
 | Consolidate (2) | ~170,000 | Two Shields |
 | Consolidate (10) | ~400,000 | Maximum Shields |
+| Create Escrow | ~180,000-230,000 | With confirmation period |
+| Confirm Escrow | ~50,000-70,000 | Sender confirmation |
+| Release Escrow | ~80,000-100,000 | After confirmation |
+| Cancel Escrow | ~80,000-100,000 | Return to sender |
 
 ## Testing
 
@@ -202,7 +283,14 @@ scripts/
 └── utils/                  # Helper functions
 
 test/
-└── LaserGun.test.js # Core tests
+├── LaserGun.test.js        # Core tests
+└── LaserGun.escrow.test.js # Escrow-specific tests
+
+docs/
+└── escrow-mechanism.md     # Escrow mechanism documentation
+
+examples/
+└── escrow-example.js       # Escrow usage examples
 ```
 
 ## Security Considerations
