@@ -4,7 +4,7 @@ const fs = require('fs');
 async function main() {
   const [deployer] = await ethers.getSigners();
   
-  console.log("🪙 Deploying TestToken with account:", deployer.address);
+  console.log("🪙 Deploying MockERC20 Test Token with account:", deployer.address);
   
   // Проверяем баланс
   const balance = await ethers.provider.getBalance(deployer.address);
@@ -20,7 +20,8 @@ async function main() {
     name: "Test USDC",
     symbol: "TUSDC", 
     decimals: 6,  // Как у настоящего USDC
-    initialSupply: 1000000 // 1M токенов владельцу
+    initialSupply: 1000000, // 1M токенов владельцу
+    setOwnership: true // Включаем режим владения для тестнета
   };
   
   console.log("📦 Token parameters:");
@@ -28,22 +29,24 @@ async function main() {
   console.log("  Symbol:", tokenParams.symbol);
   console.log("  Decimals:", tokenParams.decimals);
   console.log("  Initial Supply:", tokenParams.initialSupply);
+  console.log("  Ownership Mode:", tokenParams.setOwnership);
   
-  // Deploy TestToken
-  console.log("🚀 Deploying TestToken...");
-  const TestToken = await ethers.getContractFactory("TestToken");
+  // Deploy MockERC20 as Test Token
+  console.log("🚀 Deploying MockERC20 as Test Token...");
+  const MockERC20 = await ethers.getContractFactory("MockERC20");
   
-  const testToken = await TestToken.deploy(
+  const testToken = await MockERC20.deploy(
     tokenParams.name,
     tokenParams.symbol,
     tokenParams.decimals,
-    tokenParams.initialSupply
+    tokenParams.initialSupply,
+    tokenParams.setOwnership
   );
   
   await testToken.waitForDeployment();
   const tokenAddress = await testToken.getAddress();
   
-  console.log("✅ TestToken deployed to:", tokenAddress);
+  console.log("✅ MockERC20 Test Token deployed to:", tokenAddress);
   
   // Проверяем deployment
   console.log("🔍 Verifying deployment...");
@@ -53,6 +56,7 @@ async function main() {
   const decimals = await testToken.decimals();
   const totalSupply = await testToken.totalSupply();
   const deployerBalance = await testToken.balanceOf(deployer.address);
+  const owner = await testToken.owner();
   
   console.log("📋 Token Info:");
   console.log("  Name:", name);
@@ -60,11 +64,13 @@ async function main() {
   console.log("  Decimals:", decimals);
   console.log("  Total Supply:", ethers.formatUnits(totalSupply, decimals));
   console.log("  Deployer Balance:", ethers.formatUnits(deployerBalance, decimals));
+  console.log("  Owner:", owner);
   
-  // Тестируем faucet
-  console.log("🚿 Testing faucet...");
+  // Тестируем faucet функцию
+  console.log("🚿 Testing faucet function...");
   try {
-    const faucetTx = await testToken.faucet();
+    const faucetAmount = ethers.parseUnits("1000", decimals);
+    const faucetTx = await testToken.faucet(deployer.address, faucetAmount);
     await faucetTx.wait();
     
     const newBalance = await testToken.balanceOf(deployer.address);
@@ -86,10 +92,11 @@ async function main() {
     network: network.name,
     chainId: Number(network.chainId),
     deployer: deployer.address,
+    owner: owner,
     deployedAt: new Date().toISOString(),
     faucetAmount: "1000", // 1000 токенов за запрос
-    faucetCooldown: "1 hour",
-    contractName: "TestToken"
+    contractName: "MockERC20",
+    ownershipMode: tokenParams.setOwnership
   };
   
   // Сохраняем в отдельный файл
@@ -117,6 +124,7 @@ async function main() {
   console.log("Network:              ", network.name);
   console.log("Chain ID:             ", network.chainId);
   console.log("Deployer:             ", deployer.address);
+  console.log("Owner:                ", owner);
   console.log("═══════════════════════════════════════");
   
   console.log("\n🎯 Next Steps:");
@@ -126,8 +134,8 @@ async function main() {
   console.log("   Decimals: 6");
   console.log("");
   console.log("2. Get test tokens from faucet:");
-  console.log("   Call testToken.faucet() to get 1000 TUSDC");
-  console.log("   Cooldown: 1 hour between claims");
+  console.log("   Call testToken.faucet(address, amount) as owner");
+  console.log("   Example: testToken.faucet(yourAddress, 1000 * 10^6)");
   console.log("");
   console.log("3. Use with LaserGun:");
   console.log("   - Approve LaserGun to spend your tokens");
@@ -148,7 +156,7 @@ async function main() {
     // LaserGun не задеплоен или нет файла - не проблема
   }
   
-  console.log("\n🎉 TestToken deployment completed!");
+  console.log("\n🎉 MockERC20 Test Token deployment completed!");
 }
 
 main()

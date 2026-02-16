@@ -134,6 +134,94 @@ async function main() {
   
   console.log("\n🎉 Deployment completed successfully!");
   console.log("🔗 Add this address to your frontend:", proxyAddress);
+  
+  // Проверяем, нужно ли автоматически верифицировать контракт
+  const shouldVerify = process.env.AUTO_VERIFY === "true";
+  
+  if (shouldVerify) {
+    console.log("\n🔍 Starting automatic contract verification...");
+    
+    // Проверяем наличие необходимых API ключей
+    const requiredEnvVars = getRequiredEnvVars(network.name);
+    const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
+    
+    if (missingEnvVars.length > 0) {
+      console.warn(`⚠️ Cannot verify: Missing environment variables: ${missingEnvVars.join(", ")}`);
+      console.warn("💡 Add these to your .env file and set AUTO_VERIFY=true to enable automatic verification");
+    } else {
+      try {
+        // Верифицируем implementation контракт
+        console.log("🔍 Verifying implementation contract...");
+        
+        await run("verify:verify", {
+          address: implementationAddress,
+          constructorArguments: [], // Implementation контракт не имеет конструктора
+        });
+        
+        console.log("✅ Implementation contract verified successfully!");
+        
+        // Обновляем deployment.json с информацией о верификации
+        deploymentInfo.verified = true;
+        deploymentInfo.verifiedAt = new Date().toISOString();
+        deploymentInfo.verifiedOn = network.name;
+        
+        fs.writeFileSync(
+          './deployment.json',
+          JSON.stringify(deploymentInfo, null, 2)
+        );
+        
+        // Выводим ссылки на обозреватель блоков
+        const explorerUrls = getExplorerUrls(network.name);
+        if (explorerUrls) {
+          console.log("\n🔗 Explorer Links:");
+          console.log(`Proxy: ${explorerUrls.base}/address/${proxyAddress}`);
+          console.log(`Implementation: ${explorerUrls.base}/address/${implementationAddress}`);
+        }
+        
+        console.log("✅ Automatic verification completed successfully!");
+        
+      } catch (error) {
+        if (error.message.includes("Already Verified")) {
+          console.log("✅ Contract is already verified");
+        } else {
+          console.warn("⚠️ Automatic verification failed:", error.message);
+          console.warn("💡 You can verify manually with: npx hardhat run scripts/verify.js --network", network.name);
+        }
+      }
+    }
+  } else {
+    console.log("\n💡 To automatically verify contracts after deployment, set AUTO_VERIFY=true in your .env file");
+    console.log(`💡 Or verify manually with: npx hardhat run scripts/verify.js --network ${network.name}`);
+  }
+}
+
+// Вспомогательные функции
+function getRequiredEnvVars(networkName) {
+  switch (networkName) {
+    case "polygon":
+    case "amoy":
+      return ["POLYGONSCAN_API_KEY"];
+    case "avalanche":
+    case "avalancheFujiTestnet":
+      return ["SNOWTRACE_API_KEY"];
+    default:
+      return [];
+  }
+}
+
+function getExplorerUrls(networkName) {
+  switch (networkName) {
+    case "polygon":
+      return { base: "https://polygonscan.com" };
+    case "amoy":
+      return { base: "https://amoy.polygonscan.com" };
+    case "avalanche":
+      return { base: "https://snowtrace.io" };
+    case "avalancheFujiTestnet":
+      return { base: "https://testnet.snowtrace.io" };
+    default:
+      return null;
+  }
 }
 
 main()
