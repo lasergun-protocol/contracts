@@ -56,11 +56,11 @@ library Points {
         // вызов не сжигает лимит целиком и позволяет fallback
         bool ok;
         assembly ("memory-safe") {
-            // precompile 0x07 принимает (x, y, scalar) — порядок по EIP-197
+            // precompile 0x07 принимает (scalar, x, y) — порядок по EIP-197
             let ptr := mload(0x40)
-            mstore(ptr, x)
-            mstore(add(ptr, 32), y)
-            mstore(add(ptr, 64), scalar)
+            mstore(ptr, scalar)
+            mstore(add(ptr, 32), x)
+            mstore(add(ptr, 64), y)
             ok := staticcall(10000, 0x07, ptr, 96, ptr, 64)
             rx := mload(ptr)
             ry := mload(add(ptr, 32))
@@ -68,13 +68,10 @@ library Points {
         }
         if (ok && (rx != 0 || ry != 0)) return (rx, ry);
         if (ok && rx == 0 && ry == 0) {
-            // ok=true и (0,0): либо k ≡ 0 (mod n) — корректная бесконечность
-            // (cofactor=1 в alt_bn128), либо точка-аргумент вне кривой/подгруппы.
-            if (scalar % N == 0) return (0, 0);
-            // валидируем точку-аргумент: на кривой → бесконечность корректна
-            // (k·P = inf ⟺ n | k), иначе — некорректный вход (fallback вернёт
-            // мусор, поэтому сразу (0,0))
-            if (_onCurve(x, y)) return (0, 0);
+            // ok=true и (0,0): корректная бесконечность (k ≡ 0 mod n, cofactor=1
+            // в alt_bn128). Скаляр уже приведён по модулю N выше, здесь k ≠ 0,
+            // значит precompile отклонил точку (вне кривой/подгруппы): вход
+            // невалиден, но результат (0,0) согласован с fallback-поведением.
             return (0, 0);
         }
         // fallback: double-and-add по битам скаляра через 0x06

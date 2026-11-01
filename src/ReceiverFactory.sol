@@ -12,13 +12,63 @@ import {ILaserGunCore} from "./interfaces/ILaserGunCore.sol";
 contract ReceiverFactory {
     ILaserGunCore public immutable core;
 
+    // Эталонные шаблоны initcode (11.1 ТЗ): хеш шаблонного префикса и его
+    // длина для каждого типа приёмника. Полный initcode = шаблон (префикс)
+    // + аргументы конструктора (core, pool, asset, treasury, assetId, S,
+    // di, E, X / owner, usdc, weth). create2 регистрирует приёмник ТОЛЬКО
+    // если префикс initcode совпадает с эталоном — произвольный код
+    // зарегистрировать нельзя (INV-20: минт только в обмен на реальный
+    // supply). Задаётся владельцем фабрики однократно после сборки стека.
+    bytes32 public receiverTemplateHash;
+    uint256 public receiverTemplateLen;
+    bytes32 public outputReceiverTemplateHash;
+    uint256 public outputReceiverTemplateLen;
+    address public owner;
+
     event ReceiverDeployed(address indexed receiver, bytes32 indexed salt, bool payout);
+    event TemplateHashesSet(bytes32 receiverTemplateHash, bytes32 outputReceiverTemplateHash);
+    event OwnerTransferred(address indexed previousOwner, address indexed newOwner);
 
     error DeploymentFailed();
     error InitcodeMismatch();
+    error NotOwner();
+    error HashesNotSet();
+
+    modifier onlyOwner() {
+        if (msg.sender != owner) revert NotOwner();
+        _;
+    }
 
     constructor(address core_) {
         core = ILaserGunCore(core_);
+        owner = msg.sender;
+    }
+
+    /// @notice Однократная фиксация эталонных шаблонов (после сборки стека).
+    /// @param receiverHash_ keccak256(шаблон Receiver)
+    /// @param receiverLen_ длина шаблона Receiver в байтах
+    /// @param outputHash_ keccak256(шаблон OutputReceiver)
+    /// @param outputLen_ длина шаблона OutputReceiver в байтах
+    function setTemplateHashes(
+        bytes32 receiverHash_,
+        uint256 receiverLen_,
+        bytes32 outputHash_,
+        uint256 outputLen_
+    ) external onlyOwner {
+        require(receiverTemplateHash == bytes32(0), "already set");
+        require(receiverHash_ != bytes32(0) && outputHash_ != bytes32(0), "zero hash");
+        require(receiverLen_ != 0 && outputLen_ != 0, "zero len");
+        receiverTemplateHash = receiverHash_;
+        receiverTemplateLen = receiverLen_;
+        outputReceiverTemplateHash = outputHash_;
+        outputReceiverTemplateLen = outputLen_;
+        emit TemplateHashesSet(receiverHash_, outputHash_);
+    }
+
+    function transferOwnership(address newOwner) external onlyOwner {
+        require(newOwner != address(0), "zero owner");
+        emit OwnerTransferred(owner, newOwner);
+        owner = newOwner;
     }
 
     /// @notice CREATE2-деплой приёмника и регистрация в ядре.
@@ -30,6 +80,14 @@ contract ReceiverFactory {
         external
         returns (address receiver)
     {
+        bytes32 want = payout ? outputReceiverTemplateHash : receiverTemplateHash;
+        if (want == bytes32(0)) revert HashesNotSet();
+        uint256 tLen = payout ? outputReceiverTemplateLen : receiverTemplateLen;
+        // INV-20: префикс initcode обязан быть эталонным шаблоном — произвольный
+        // код зарегистрировать приёмником нельзя, необеспеченный минт невозможен
+        if (initcode.length <= tLen || keccak256(initcode[:tLen]) != want) {
+            revert InitcodeMismatch();
+        }
         // create2 читает память: calldata-срез копируется в память
         bytes memory code = initcode;
         assembly ("memory-safe") {

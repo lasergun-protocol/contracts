@@ -9,6 +9,11 @@ interface ISpend {
 
 contract SpendRepro is Test {
     function test_repro() external {
+        // отладочный репро: требует внешний артефакт inner-calldata.txt
+        // (дамп каллдаты падающей траты). Без него — skip, не fail.
+        if (!vm.exists("inner-calldata.txt")) {
+            vm.skip(true);
+        }
         string memory data = vm.readFile("inner-calldata.txt");
         bytes memory cd = vm.parseBytes(data);
         address core = vm.envOr("CORE", address(0));

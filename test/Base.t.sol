@@ -52,6 +52,14 @@ contract Base is Test {
             treasury, feesOwner
         );
 
+        // INV-20: фиксируем эталоны шаблонов (как в DeployLocal.s.sol)
+        factory.setTemplateHashes(
+            keccak256(type(Receiver).creationCode),
+            type(Receiver).creationCode.length,
+            keccak256(type(OutputReceiver).creationCode),
+            type(OutputReceiver).creationCode.length
+        );
+
         // казна должна дать allowance executor'у на aTokens (10.2)
         vm.prank(treasury);
         pool.aUSDC().approve(address(executor), type(uint256).max);

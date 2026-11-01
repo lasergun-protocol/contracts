@@ -52,6 +52,14 @@ abstract contract ATBase is Test {
             treasury, feesOwner
         );
 
+        // INV-20: фиксируем эталоны шаблонов (как в Base.t.sol/DeployLocal)
+        factory.setTemplateHashes(
+            keccak256(type(Receiver).creationCode),
+            type(Receiver).creationCode.length,
+            keccak256(type(OutputReceiver).creationCode),
+            type(OutputReceiver).creationCode.length
+        );
+
         // через типизированные переменные: связка «доступ-к-иммутабелю + вызов»
         // в via-IR может искажать каллдату цепочки
         MockAToken aU = pool.aUSDC();

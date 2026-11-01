@@ -5,6 +5,8 @@ import {Script} from "forge-std/Script.sol";
 import {LaserGunCore} from "../src/LaserGunCore.sol";
 import {Executor} from "../src/Executor.sol";
 import {ReceiverFactory} from "../src/ReceiverFactory.sol";
+import {Receiver} from "../src/Receiver.sol";
+import {OutputReceiver} from "../src/OutputReceiver.sol";
 import {MockUSDC, MockWETH, MockAavePool} from "../test/mocks/Mocks.sol";
 
 contract DeployLocal is Script {
@@ -30,6 +32,18 @@ contract DeployLocal is Script {
             deployer, deployer
         );
         require(address(core) == cAddr, "core addr mismatch");
+
+        // INV-20: фиксируем эталонные шаблоны фабрики — иначе create2
+        // отвергнет любой initcode (HashesNotSet), произвольный код
+        // зарегистрировать приёмником нельзя. Шаблоны = creation code
+        // (type(B).creationCode) без аргументов конструктора; SDK
+        // дописывает аргументы и кладёт полный initcode в create2.
+        factory.setTemplateHashes(
+            keccak256(type(Receiver).creationCode),
+            type(Receiver).creationCode.length,
+            keccak256(type(OutputReceiver).creationCode),
+            type(OutputReceiver).creationCode.length
+        );
 
         // mint тестовых активов первому аккаунту (в broadcast: mutation)
         usdc.mint(0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, 1_000_000e6);

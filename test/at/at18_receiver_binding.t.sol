@@ -8,6 +8,7 @@ pragma solidity ^0.8.24;
 import {Receiver} from "../../src/Receiver.sol";
 import {LaserGunCore} from "../../src/LaserGunCore.sol";
 import {ReceiverFactory} from "../../src/ReceiverFactory.sol";
+import {OutputReceiver} from "../../src/OutputReceiver.sol";
 import {ATBase} from "../lib/ATBase.sol";
 
 contract AT18_ReceiverBinding is ATBase {
@@ -109,4 +110,54 @@ contract AT18_ReceiverBinding is ATBase {
         vm.expectRevert(LaserGunCore.SenderNotFactory.selector);
         core.registerReceiver(makeAddr("at18-fake-rcv"));
     }
+
+    // ── INV-20: эталонные шаблоны фабрики ──────────────────────────
+
+    function test_create2_rejects_arbitrary_initcode() public {
+        // произвольный initcode НЕ зарегистрируется приёмником (Н1):
+        // префикс не совпадает с эталонным шаблоном Receiver
+        (uint256[] memory di, bytes[] memory es, bytes[] memory xs, uint256 deposited) = _params("at18v");
+        bytes memory init = _init(deposited, di, es, xs);
+
+        // полностью чужой код — префикс не совпал с эталоном
+        vm.expectRevert(ReceiverFactory.InitcodeMismatch.selector);
+        factory.create2(_salt(), abi.encodePacked(type(AT18_FakeReceiver).creationCode), false);
+
+        // валидный префикс, но обрезанный хвост аргументов проходит гейт
+        // шаблона и падает уже на CREATE2-деплое (атомарный откат: ничего
+        // не регистрируется — необеспеченный минт по-прежнему невозможен)
+        bytes memory truncated = new bytes(init.length - 1);
+        for (uint256 i; i < truncated.length; ++i) truncated[i] = init[i];
+        vm.expectRevert(ReceiverFactory.DeploymentFailed.selector);
+        factory.create2(_salt(), truncated, false);
+    }
+
+    function test_create2_rejects_wrong_template_kind() public {
+        // initcode OutputReceiver под видом входного приёмника — реверт
+        bytes memory outputInit = abi.encodePacked(
+            type(OutputReceiver).creationCode,
+            abi.encode(makeAddr("at18own"), address(usdc), address(weth))
+        );
+        vm.expectRevert(ReceiverFactory.InitcodeMismatch.selector);
+        factory.create2(_salt(), outputInit, false);
+    }
+
+    function test_template_hashes_one_time_set() public {
+        // повторная фиксация эталонов запрещена
+        vm.expectRevert(bytes("already set"));
+        factory.setTemplateHashes(
+            keccak256(type(Receiver).creationCode),
+            type(Receiver).creationCode.length,
+            keccak256(type(OutputReceiver).creationCode),
+            type(OutputReceiver).creationCode.length
+        );
+        // и не владелец не может вызвать вовсе
+        vm.prank(makeAddr("at18-stranger"));
+        vm.expectRevert(ReceiverFactory.NotOwner.selector);
+        factory.transferOwnership(makeAddr("at18-next"));
+    }
+}
+
+contract AT18_FakeReceiver {
+    uint256 public x = 1;
 }
