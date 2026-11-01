@@ -56,10 +56,11 @@ library Points {
         // вызов не сжигает лимит целиком и позволяет fallback
         bool ok;
         assembly ("memory-safe") {
+            // precompile 0x07 принимает (x, y, scalar) — порядок по EIP-197
             let ptr := mload(0x40)
-            mstore(ptr, scalar)
-            mstore(add(ptr, 32), x)
-            mstore(add(ptr, 64), y)
+            mstore(ptr, x)
+            mstore(add(ptr, 32), y)
+            mstore(add(ptr, 64), scalar)
             ok := staticcall(10000, 0x07, ptr, 96, ptr, 64)
             rx := mload(ptr)
             ry := mload(add(ptr, 32))

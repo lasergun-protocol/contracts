@@ -30,6 +30,7 @@ contract Executor {
     error NotFeeOwner();
     error InsufficientFees();
     error PullFailed();
+    error TransferFailed();
 
     event FeesWithdrawn(uint256 indexed assetId, address indexed to, uint256 amount);
 
@@ -94,10 +95,10 @@ contract Executor {
         if (!aToken.transferFrom(treasury, address(this), aTokenAmount)) revert PullFailed();
         // immediate redeem: underlying — USDC/WETH; сжигает rayDiv(amount, index)
         IAavePool(pool).withdraw(underlying, amount, address(this));
-        IERC20Minimal(underlying).transfer(to, amount);
+        if (!IERC20Minimal(underlying).transfer(to, amount)) revert TransferFailed();
         // возврат остатка тяги (0 или 1 единица) казне той же транзой:
         // баланс executor'а после выплаты нулевой (10.2)
-        aToken.transfer(treasury, aToken.balanceOf(address(this)));
+        if (!aToken.transfer(treasury, aToken.balanceOf(address(this)))) revert TransferFailed();
     }
 
     function aTokenOf(uint256 assetId) internal view returns (address) {

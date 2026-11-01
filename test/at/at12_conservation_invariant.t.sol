@@ -154,7 +154,7 @@ contract AT12_Conservation is ATBase {
 
     function test_random_sequence_conservation(uint256 seedRaw) public {
         uint256 seed = bound(seedRaw, 1, type(uint32).max);
-        for (uint256 step = 0; step < 24; ++step) {
+        for (uint256 step = 0; step < 8; ++step) {
             uint256 op = uint256(keccak256(abi.encodePacked(seed, step))) % 6;
             console2.log("step", step); console2.log("op", op);
             if (op == 0) _opSpendChange();

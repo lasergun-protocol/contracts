@@ -85,7 +85,7 @@ contract Receiver {
 
     /// @notice supply(asset, S, onBehalfOf=казна) и минт ровно S − feeIn(S).
     function _supplyAndMint() internal {
-        IERC20Minimal(asset).approve(address(pool), depositAmount);
+        if (!IERC20Minimal(asset).approve(address(pool), depositAmount)) revert PullFailed();
         IAavePool(pool).supply(asset, depositAmount, treasury, 0);
         // минт: deposited — полная сумма; ядро вычтет feeIn и проверит консервацию
         (bool ok, ) = address(core).call(

@@ -1,0 +1,5 @@
+{
+  "detectors_to_exclude": "arbitrary-send-erc20,arbitrary-send-eth,naming-convention,unused-state,similar-names,too-many-digits,version",
+  "filter_paths": "lib|test",
+  "legacy_ast": false
+}

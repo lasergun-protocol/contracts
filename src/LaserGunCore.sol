@@ -183,7 +183,7 @@ contract LaserGunCore is ILaserGunCore {
 
         // 5. консервация выходов с комиссией (6.7)
         uint256 fee;
-        uint256 amount; // выплата executor'а — только обналичивание
+        uint256 amount = 0; // выплата executor'а — только обналичивание
         {
             uint256 minDenom_ = assetId.minDenom();
             bool hasChange = a.change.di.length > 0;
@@ -347,17 +347,6 @@ contract LaserGunCore is ILaserGunCore {
         for (uint256 j = 0; j < ring.length; ++j) {
             if (!pairMembers[key][keccak256(ring[j])]) revert UnknownCommitment();
         }
-    }
-
-    /// @notice LSAG-пересчёт: M собирается на месте, верификация в библиотеке.
-    function _verifySignature(
-        uint256 assetId, uint256 di, address recipient,
-        bytes[] calldata ring, bytes[] calldata hp, bytes calldata I,
-        bytes32 c1, uint256[] calldata s,
-        Change calldata change, Envelope calldata env, Payee calldata payee
-    ) internal view returns (bool) {
-        bytes32 mHash = messageHash(assetId, di, recipient, change, env, payee);
-        return LSAG.verify(mHash, ring, hp, I, c1, s);
     }
 
     /// @notice Проверка минтового блока (сдача): длины, точки, уникальность.

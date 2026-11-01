@@ -22,6 +22,10 @@ gas_reports = ["*"]
 # поднимаем бюджет транзакции/вызова, чтобы 4+ подписи влезали в тест
 gas_limit = 8_000_000_000
 
+# Vector export (S1 cross-check): allow writes into ./vectors
+fs_permissions = [{ access = "read-write", path = "./vectors" }, { access = "read", path = "./" }]
+memory_limit = 4_294_967_296
+
 [rpc_endpoints]
 base_sepolia = "${BASE_SEPOLIA_RPC_URL}"
 base = "${BASE_RPC_URL}"
@@ -30,6 +34,9 @@ base = "${BASE_RPC_URL}"
 fuzz = { runs = 2048 }
 invariant = { runs = 256, depth = 256 }
 
+# Запуск тяжёлых AT-наборов:
+#   FOUNDRY_PROFILE=at10 forge test --match-contract "AT10|AT21"   (rebuild/seed: 80G gas)
+#   AT-12 запускается в default-профиле (fuzz 512 × 8 шагов).
 # AT-10 (rebuild): 50 минтов + 20 трат + 10 конвертов — суммарно ~25B gas.
 # Отдельный профиль с увеличенным бюджетом транзакции.
 [profile.at10]
